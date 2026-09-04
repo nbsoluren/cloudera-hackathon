@@ -67,7 +67,6 @@
   let rpm = 4200;
   let gear = 3;
   let crashPhase = null;
-  let crashTimers = [];
   function tickTelemetry() {
     if (crashPhase === "dead") {
       speed += (0 - speed) * 0.22;
@@ -217,66 +216,46 @@
   function next() { go(state.i + 1); }
   function prev() { go(state.i - 1); }
 
-  function onCrashSlide() {
-    return !!slides[state.i]?.classList.contains("crash-slide");
+  function onEnter(i) {
+    document.body.classList.remove("crash-scene", "crashing", "crash-dead");
+    crashPhase = null;
+    if (i === 1) playCrash();
+    else if (!state.muted) startVoice();
+    if (i === 5) startEngine();
+    else stopEngine();
+    if (i === 6) playPit();
+    if (i === 8) playCounts();
   }
 
-  function stopCrash() {
+  let crashTimers = [];
+  function playCrash() {
     crashTimers.forEach(clearTimeout);
     crashTimers = [];
-    crashPhase = null;
-    document.body.classList.remove("crash-scene", "crashing", "crash-dead");
-    $$(".crash-stage").forEach((stage) => stage.classList.remove("play"));
-  }
-
-  function onEnter(i) {
-    stopCrash();
-    const slide = slides[i];
-    if (!slide) return;
-    if (slide.classList.contains("crash-slide")) playCrash();
-    else if (!state.muted) startVoice();
-    if (slide.querySelector("#engine")) startEngine();
-    else stopEngine();
-    if (slide.querySelector("#tower")) playPit();
-    if (slide.querySelector(".count")) playCounts();
-  }
-
-  function playCrash() {
-    stopCrash();
-    if (!onCrashSlide()) return;
     crashPhase = "approach";
     if (!state.muted) startVoice();
-    const stage = slides[state.i].querySelector(".crash-stage");
+    const stage = $(".crash-stage");
     if (!stage) return;
+    stage.classList.remove("play");
     void stage.offsetWidth;
+    stage.classList.add("play");
+    document.body.classList.add("crash-scene");
     crashTimers.push(setTimeout(() => {
-      if (!onCrashSlide()) return;
-      void stage.offsetWidth;
-      stage.classList.add("play");
-      document.body.classList.add("crash-scene");
-    }, 90));
-    crashTimers.push(setTimeout(() => {
-      if (!onCrashSlide()) return;
       crashPhase = "dead";
       document.body.classList.add("crashing", "crash-dead");
       $("#hud-flag").textContent = "RED FLAG";
       crashSound();
       crashBurst();
       if (voice.engine) {
-        crashTimers.push(setTimeout(() => {
-          if (!onCrashSlide()) return;
-          try { voice.engine.pause(); } catch (_) {}
-        }, 180));
+        setTimeout(() => { try { voice.engine.pause(); } catch (_) {} }, 180);
       }
-    }, 780));
+    }, 690));
     crashTimers.push(setTimeout(() => {
-      if (!onCrashSlide()) return;
       document.body.classList.remove("crashing");
     }, 1220));
   }
 
   function crashSound() {
-    if (state.muted || !onCrashSlide()) return;
+    if (state.muted) return;
     const ac = audioCtx();
     const t = ac.currentTime;
     driveVoice();
@@ -465,7 +444,6 @@
     }
   }
   function crashBurst() {
-    if (!onCrashSlide()) return;
     const cx = innerWidth * 0.62;
     const cy = innerHeight * 0.48;
     for (let i = 0; i < 110; i++) {
@@ -536,7 +514,7 @@
     if (e.key === "m" || e.key === "M") toggleSound();
     if (e.key === "r" || e.key === "R") restart();
     if (e.key >= "1" && e.key <= "9") go(+e.key - 1);
-    if (e.key === "0") go(slides.length - 1);
+    if (e.key === "0") go(9);
   }
 
   initCircuit();
