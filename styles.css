@@ -380,12 +380,17 @@ body.shifting .car-svg .wheel,
   position: absolute;
   inset: 0;
   opacity: 0;
+  visibility: hidden;
   transform: translateX(8%) scale(.98);
   pointer-events: none;
   display: grid;
   place-items: center;
   padding: 88px 48px 96px;
   transition: opacity .45s ease, transform .55s cubic-bezier(.2,.8,.2,1);
+}
+.slide.active,
+.slide.exit-left {
+  visibility: visible;
 }
 .slide.active {
   opacity: 1;
@@ -520,9 +525,9 @@ body.crash-dead .hud-stack strong {
   animation: blink .28s infinite;
 }
 body.crash-dead .telemetry b { color: var(--red); }
-body.crashing #deck,
-body.crashing .hud,
-body.crashing .world {
+body.crashing:has(.crash-slide.active) .hud,
+body.crashing:has(.crash-slide.active) .world,
+body.crashing .crash-slide.active {
   animation: crashShake .5s linear;
 }
 @keyframes crashShake {
@@ -544,7 +549,11 @@ body.crashing .world {
   position: relative;
   height: 260px;
   margin: 10px 0 16px;
-  overflow: visible;
+  overflow: hidden;
+}
+.crash-slide:not(.active) .crash-stage,
+.crash-slide:not(.active) .crash-stage * {
+  animation: none !important;
 }
 .skids {
   position: absolute;
@@ -1004,6 +1013,32 @@ body.crash-dead .crash-car .car-photo {
 .slide.active .reveal-mark { animation: rise .4s ease both; }
 
 .esf article h3 { color: #fff; }
+.symbols {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 22px;
+  margin-top: 28px;
+  width: 100%;
+}
+.symbol {
+  background: rgba(8,8,10,.88);
+  min-height: min(42vh, 340px);
+  display: grid;
+  place-items: center;
+  padding: 36px 20px;
+  border-bottom: 4px solid var(--red);
+  transform: translateY(18px);
+  opacity: 0;
+  backdrop-filter: blur(12px);
+}
+.slide.active .symbol { animation: rise .55s ease forwards; }
+.slide.active .symbol:nth-child(2) { animation-delay: .14s; }
+.slide.active .symbol:nth-child(3) { animation-delay: .28s; }
+.symbol-svg {
+  width: min(280px, 88%);
+  height: auto;
+  display: block;
+}
 .caps {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -1327,7 +1362,7 @@ kbd {
 
 @media (max-width: 900px) {
   .telemetry { display: none; }
-  .split, .two-cars, .caps, .arch, .impact, .stat-row, .stages, .pit-grid, .q-grid {
+  .split, .two-cars, .caps, .arch, .impact, .stat-row, .stages, .pit-grid, .q-grid, .symbols {
     grid-template-columns: 1fr;
   }
   .slide { padding: 78px 20px 90px; }
@@ -1343,6 +1378,7 @@ kbd {
   .crash-stage { height: 180px; }
   .crash-car { top: 8px; }
   .red-flag-banner { font-size: 32px; }
+  .symbol { min-height: 180px; padding: 20px; }
   .caps article, .arch-col, .lane-card { padding: 14px 16px; }
   .tower li { padding: 5px 0; }
   .story-card h3 { font-size: 26px; }

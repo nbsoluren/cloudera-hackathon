@@ -7,16 +7,13 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css?v=20260904b" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%23000' width='100' height='100'/><polygon fill='%23e10600' points='15,70 85,30 85,50 15,90'/></svg>" />
 </head>
 <body class="boot">
   <canvas id="fx" aria-hidden="true"></canvas>
   <div class="grain" aria-hidden="true"></div>
   <div class="speedlines" aria-hidden="true"></div>
-  <div class="crash-flash" aria-hidden="true"></div>
-  <div class="crash-vignette" aria-hidden="true"></div>
-
   <div class="world" aria-hidden="true">
     <div class="sky"></div>
     <div class="horizon"></div>
@@ -56,8 +53,8 @@
     <div class="boot-car" aria-hidden="true">
       <img src="assets/car-cut.png" alt="" class="car-photo" />
     </div>
-    <p class="boot-kicker">THE AGENTIC ERA</p>
-    <h1 class="boot-title">EASIER. SMARTER.<br />FASTER.</h1>
+    <p class="boot-kicker">CLOUDERA HACKATHON</p>
+    <h1 class="boot-title">LIGHTS OUT</h1>
     <div class="lights" id="start-lights" aria-hidden="true">
       <span></span><span></span><span></span><span></span><span></span>
     </div>
@@ -67,26 +64,39 @@
 
   <main id="deck" aria-live="polite">
 
-    <section class="slide" data-flag="FORMATION LAP" data-sector="01">
+    <section class="slide symbol-slide" data-flag="FORMATION LAP" data-sector="01">
       <div class="slide-inner">
-        <p class="kicker orange-stripe">SECTOR 1 · THE NEW PACE</p>
-        <h2>AGENTIC DEVELOPMENT IS<br /><em>EASIER. SMARTER. FASTER.</em></h2>
-        <p class="lede">Agents take the toil. Context comes from data you already have. Sprints move at race pace.</p>
-        <div class="caps esf">
-          <article>
-            <span class="num">01</span>
-            <h3>EASIER</h3>
-            <p>Agents draft, map, and move work. Humans keep the steering wheel.</p>
+        <p class="kicker orange-stripe">SECTOR 1</p>
+        <div class="symbols" aria-hidden="true">
+          <article class="symbol">
+            <svg viewBox="0 0 200 160" class="symbol-svg">
+              <path d="M28 52 L100 18 L172 52" fill="none" stroke="#e10600" stroke-width="6"/>
+              <rect x="36" y="52" width="128" height="86" fill="none" stroke="#f4f4f1" stroke-width="5"/>
+              <rect x="36" y="52" width="128" height="18" fill="#e10600"/>
+              <rect x="88" y="86" width="24" height="52" fill="#3df5ff"/>
+              <circle cx="72" cy="118" r="16" fill="#e10600"/>
+              <circle cx="128" cy="118" r="16" fill="#f4f4f1"/>
+              <rect x="64" y="108" width="16" height="22" fill="#111"/>
+              <rect x="120" y="108" width="16" height="22" fill="#111"/>
+            </svg>
           </article>
-          <article>
-            <span class="num">02</span>
-            <h3>SMARTER</h3>
-            <p>The advantage is not the model. It is exposing your data as context.</p>
+          <article class="symbol">
+            <svg viewBox="0 0 200 160" class="symbol-svg">
+              <path d="M28 128 V32 H172" fill="none" stroke="#333" stroke-width="4"/>
+              <path d="M28 118 L62 78 L92 96 L128 44 L172 44" fill="none" stroke="#3df5ff" stroke-width="6" stroke-linejoin="miter"/>
+              <circle cx="62" cy="78" r="8" fill="#3df5ff"/>
+              <circle cx="92" cy="96" r="8" fill="#f68b1f"/>
+              <circle cx="128" cy="44" r="8" fill="#e10600"/>
+              <path d="M148 70 L172 70 L172 94" fill="none" stroke="#f4f4f1" stroke-width="4"/>
+            </svg>
           </article>
-          <article>
-            <span class="num">03</span>
-            <h3>FASTER</h3>
-            <p>Code ships in hours, not quarters. The grid never waits.</p>
+          <article class="symbol">
+            <svg viewBox="0 0 200 160" class="symbol-svg">
+              <path d="M18 52 H78 L98 28 H170" fill="none" stroke="#f4f4f1" stroke-width="7"/>
+              <path d="M18 86 H92 L112 62 H170" fill="none" stroke="#e10600" stroke-width="7"/>
+              <path d="M18 120 H106 L126 96 H170" fill="none" stroke="#f68b1f" stroke-width="7"/>
+              <polygon points="170,20 170,108 196,64" fill="#e10600"/>
+            </svg>
           </article>
         </div>
       </div>
@@ -117,6 +127,8 @@
         <p class="kicker yellow-stripe">SECTOR 3 · THE CRASH</p>
         <h2>YOU SHIPPED AT<br /><span class="red">RACE PACE.</span></h2>
         <p class="lede">Ungoverned speed. Production was the first time anyone saw the corner.</p>
+        <div class="crash-flash" aria-hidden="true"></div>
+        <div class="crash-vignette" aria-hidden="true"></div>
         <div class="crash-stage">
           <div class="skids"></div>
           <div class="barrier" aria-hidden="true"><b></b><b></b><b></b></div>
@@ -425,6 +437,6 @@
     </svg>
   </template>
 
-  <script src="app.js"></script>
+  <script src="app.js?v=20260904b"></script>
 </body>
 </html>

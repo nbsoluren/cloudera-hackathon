@@ -67,6 +67,7 @@
   let rpm = 4200;
   let gear = 3;
   let crashPhase = null;
+  let crashTimers = [];
   function tickTelemetry() {
     if (crashPhase === "dead") {
       speed += (0 - speed) * 0.22;
@@ -216,9 +217,20 @@
   function next() { go(state.i + 1); }
   function prev() { go(state.i - 1); }
 
-  function onEnter(i) {
-    document.body.classList.remove("crash-scene", "crashing", "crash-dead");
+  function onCrashSlide() {
+    return !!slides[state.i]?.classList.contains("crash-slide");
+  }
+
+  function stopCrash() {
+    crashTimers.forEach(clearTimeout);
+    crashTimers = [];
     crashPhase = null;
+    document.body.classList.remove("crash-scene", "crashing", "crash-dead");
+    $$(".crash-stage").forEach((stage) => stage.classList.remove("play"));
+  }
+
+  function onEnter(i) {
+    stopCrash();
     const slide = slides[i];
     if (!slide) return;
     if (slide.classList.contains("crash-slide")) playCrash();
@@ -229,38 +241,42 @@
     if (slide.querySelector(".count")) playCounts();
   }
 
-  let crashTimers = [];
   function playCrash() {
-    crashTimers.forEach(clearTimeout);
-    crashTimers = [];
+    stopCrash();
+    if (!onCrashSlide()) return;
     crashPhase = "approach";
     if (!state.muted) startVoice();
-    const stage = $(".crash-stage");
+    const stage = slides[state.i].querySelector(".crash-stage");
     if (!stage) return;
-    stage.classList.remove("play");
-    document.body.classList.remove("crash-scene", "crashing", "crash-dead");
+    void stage.offsetWidth;
     crashTimers.push(setTimeout(() => {
+      if (!onCrashSlide()) return;
       void stage.offsetWidth;
       stage.classList.add("play");
       document.body.classList.add("crash-scene");
     }, 90));
     crashTimers.push(setTimeout(() => {
+      if (!onCrashSlide()) return;
       crashPhase = "dead";
       document.body.classList.add("crashing", "crash-dead");
       $("#hud-flag").textContent = "RED FLAG";
       crashSound();
       crashBurst();
       if (voice.engine) {
-        setTimeout(() => { try { voice.engine.pause(); } catch (_) {} }, 180);
+        crashTimers.push(setTimeout(() => {
+          if (!onCrashSlide()) return;
+          try { voice.engine.pause(); } catch (_) {}
+        }, 180));
       }
     }, 780));
     crashTimers.push(setTimeout(() => {
+      if (!onCrashSlide()) return;
       document.body.classList.remove("crashing");
     }, 1220));
   }
 
   function crashSound() {
-    if (state.muted) return;
+    if (state.muted || !onCrashSlide()) return;
     const ac = audioCtx();
     const t = ac.currentTime;
     driveVoice();
@@ -449,6 +465,7 @@
     }
   }
   function crashBurst() {
+    if (!onCrashSlide()) return;
     const cx = innerWidth * 0.62;
     const cy = innerHeight * 0.48;
     for (let i = 0; i < 110; i++) {
