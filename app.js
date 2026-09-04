@@ -68,6 +68,7 @@
   let gear = 3;
   let crashPhase = null;
   let crashTimers = [];
+  let fireOn = false;
   function tickTelemetry() {
     if (crashPhase === "dead") {
       speed += (0 - speed) * 0.22;
@@ -221,6 +222,7 @@
     crashTimers.forEach(clearTimeout);
     crashTimers = [];
     crashPhase = null;
+    fireOn = false;
     document.body.classList.remove("crash-scene", "crashing", "crash-dead");
     const stage = $(".crash-stage");
     if (stage) stage.classList.remove("play");
@@ -254,6 +256,7 @@
     }, 40));
     crashTimers.push(setTimeout(() => {
       crashPhase = "dead";
+      fireOn = true;
       document.body.classList.add("crashing", "crash-dead");
       $("#hud-flag").textContent = "RED FLAG";
       crashSound();
@@ -267,6 +270,10 @@
     crashTimers.push(setTimeout(() => {
       document.body.classList.remove("crashing");
     }, 1480));
+    crashTimers.push(setTimeout(() => {
+      if (!slides[state.i]?.classList.contains("crash-slide")) return;
+      playCrash();
+    }, 5600));
   }
 
   function crashSound() {
@@ -476,6 +483,42 @@
       });
     }
   }
+  function emitFire() {
+    if (!fireOn) return;
+    const car = $(".crash-car");
+    if (!car) return;
+    const r = car.getBoundingClientRect();
+    const x = r.left + r.width * 0.86;
+    const y = r.top + r.height * 0.5;
+    for (let n = 0; n < 2; n++) {
+      const hot = Math.random();
+      parts.push({
+        x: x + (Math.random() - 0.5) * r.width * 0.14,
+        y: y + (Math.random() - 0.5) * r.height * 0.16,
+        vx: (Math.random() - 0.5) * 0.9,
+        vy: -1.6 - Math.random() * 2.6,
+        life: 1,
+        w: 9 + Math.random() * 16,
+        h: 14 + Math.random() * 24,
+        c: hot > 0.65 ? "#fff3b0" : hot > 0.3 ? "#ff7a14" : "#d40f00",
+        kind: "flame",
+      });
+    }
+    if (Math.random() > 0.4) {
+      parts.push({
+        x: x + (Math.random() - 0.5) * 24,
+        y: y - 8,
+        vx: (Math.random() - 0.5) * 0.45,
+        vy: -0.7 - Math.random() * 1.1,
+        life: 1,
+        w: 20 + Math.random() * 28,
+        h: 20 + Math.random() * 28,
+        c: "rgba(32,30,28,0.5)",
+        kind: "smoke",
+      });
+    }
+  }
+
   function crashBurst() {
     const stage = $(".crash-stage");
     const r = stage ? stage.getBoundingClientRect() : { left: innerWidth * 0.5, top: innerHeight * 0.4, width: innerWidth * 0.4, height: 200 };
@@ -511,15 +554,38 @@
   }
   function drawFx() {
     ctx.clearRect(0, 0, innerWidth, innerHeight);
+    emitFire();
     parts = parts.filter((p) => p.life > 0);
     for (const p of parts) {
-      ctx.globalAlpha = p.life * 0.75;
-      ctx.fillStyle = p.c;
-      if (p.kind === "spark") {
+      if (p.kind === "flame") {
+        ctx.globalCompositeOperation = "lighter";
+        ctx.globalAlpha = p.life * 0.7;
+        const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.w);
+        g.addColorStop(0, p.c);
+        g.addColorStop(1, "rgba(0,0,0,0)");
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.ellipse(p.x, p.y, p.w * 0.42 * p.life, p.h * 0.55 * p.life, 0, 0, Math.PI * 2);
+        ctx.fill();
+        p.vy -= 0.05;
+        p.life -= 0.032;
+        ctx.globalCompositeOperation = "source-over";
+      } else if (p.kind === "smoke") {
+        ctx.globalAlpha = p.life * 0.28;
+        ctx.fillStyle = p.c;
+        ctx.beginPath();
+        ctx.ellipse(p.x, p.y, p.w * 0.5 * (1.2 - p.life * 0.3), p.h * 0.5 * (1.3 - p.life * 0.2), 0, 0, Math.PI * 2);
+        ctx.fill();
+        p.life -= 0.012;
+      } else if (p.kind === "spark") {
+        ctx.globalAlpha = p.life * 0.75;
+        ctx.fillStyle = p.c;
         ctx.fillRect(p.x, p.y, p.w, 2);
         p.vy += 0.28;
         p.life -= 0.018;
       } else {
+        ctx.globalAlpha = p.life * 0.75;
+        ctx.fillStyle = p.c;
         ctx.fillRect(p.x, p.y, p.w, 2);
         p.life -= 0.025;
       }
@@ -527,6 +593,7 @@
       p.y += p.vy;
     }
     ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = "source-over";
     requestAnimationFrame(drawFx);
   }
 
