@@ -10,7 +10,8 @@
   const slides = $$(".slide");
   const state = {
     i: 0,
-    started: false,
+    started: true,
+    race: false,
     starting: false,
     shifting: false,
     muted: true,
@@ -39,7 +40,13 @@
     el.innerHTML = slides.map((_, n) => `<div class="sector" data-i="${n}"></div>`).join("");
     el.addEventListener("click", (e) => {
       const sec = e.target.closest(".sector");
-      if (sec && state.started) go(+sec.dataset.i);
+      if (!sec || !state.started) return;
+      const i = +sec.dataset.i;
+      if (!state.race && i > 0) {
+        showLightsGate();
+        return;
+      }
+      go(i);
     });
   }
 
@@ -58,9 +65,11 @@
   }
 
   function setHud() {
+    const slide = slides[state.i];
+    const sector = (slide && slide.dataset.sector) || String(state.i + 1).padStart(2, "0");
     $("#hud-flag").textContent = FLAGS[state.i] || "GREEN FLAG";
-    $("#hud-sector").textContent = String(state.i + 1).padStart(2, "0");
-    $(".pos-box").textContent = String(state.i + 1).padStart(2, "0");
+    $("#hud-sector").textContent = sector;
+    $(".pos-box").textContent = sector;
   }
 
   let speed = 118;
@@ -193,6 +202,10 @@
     if (!state.started || state.shifting) return;
     const next = Math.max(0, Math.min(slides.length - 1, n));
     if (next === state.i) return;
+    if (!state.race && next > 0) {
+      showLightsGate();
+      return;
+    }
     state.shifting = true;
     document.body.classList.add("shifting");
     revBlip();
@@ -213,18 +226,46 @@
     }, 480);
   }
 
-  function next() { go(state.i + 1); }
+  function overlayUp() {
+    const el = $("#boot-overlay");
+    return el && !el.hidden && !el.classList.contains("off");
+  }
+
+  function showLightsGate() {
+    if (state.race || state.starting) return;
+    const overlay = $("#boot-overlay");
+    overlay.hidden = false;
+    overlay.classList.remove("off");
+    document.body.classList.add("boot");
+    $("#start-lights").classList.remove("out");
+    $$("#start-lights span").forEach((b) => b.classList.remove("on"));
+    const btn = $("#btn-go");
+    btn.disabled = false;
+    btn.textContent = "LIGHTS OUT";
+  }
+
+  function next() {
+    if (!state.race && state.i === 0 && !overlayUp()) {
+      showLightsGate();
+      return;
+    }
+    go(state.i + 1);
+  }
   function prev() { go(state.i - 1); }
 
   function onEnter(i) {
-    document.body.classList.remove("crash-scene", "crashing", "crash-dead");
+    document.body.classList.remove("crash-scene", "crashing", "crash-dead", "neural-scene");
     crashPhase = null;
-    if (i === 1) playCrash();
+    if (i === 0) {
+      document.body.classList.add("neural-scene");
+      neuralBurst();
+    }
+    if (i === 2) playCrash();
     else if (!state.muted) startVoice();
-    if (i === 5) startEngine();
+    if (i === 6) startEngine();
     else stopEngine();
-    if (i === 6) playPit();
-    if (i === 8) playCounts();
+    if (i === 7) playPit();
+    if (i === 9) playCounts();
   }
 
   let crashTimers = [];
@@ -367,7 +408,8 @@
   }
 
   async function lightsOut() {
-    if (state.started || state.starting) return;
+    if (state.race || state.starting) return;
+    if (!overlayUp()) showLightsGate();
     state.starting = true;
     const btn = $("#btn-go");
     btn.disabled = true;
@@ -386,13 +428,10 @@
     $("#boot-overlay").classList.add("off");
     $("#boot-overlay").hidden = true;
     document.body.classList.remove("boot");
-    state.started = true;
-    slides[0].classList.add("active");
-    setHud();
-    paintCircuit();
-    onEnter(0);
+    state.race = true;
+    state.starting = false;
+    if (state.i === 0) go(1);
     startVoice();
-    revBlip();
   }
 
   function wait(ms) { return new Promise((r) => setTimeout(r, ms)); }
@@ -429,6 +468,21 @@
     canvas.style.height = innerHeight + "px";
     ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
   }
+  function neuralBurst() {
+    for (let i = 0; i < 36; i++) {
+      parts.push({
+        x: innerWidth * (0.55 + Math.random() * 0.42),
+        y: innerHeight * (0.18 + Math.random() * 0.55),
+        vx: -3 - Math.random() * 9,
+        vy: (Math.random() - 0.5) * 3,
+        life: 1,
+        w: 10 + Math.random() * 28,
+        c: Math.random() > 0.45 ? "#3df5ff" : "#e10600",
+        kind: "streak",
+      });
+    }
+  }
+
   function burst() {
     for (let i = 0; i < 42; i++) {
       parts.push({
@@ -500,7 +554,7 @@
       help.hidden = !help.hidden;
       return;
     }
-    if (!state.started && (e.key === "Enter" || e.key === " " || e.key === "ArrowRight")) {
+    if (overlayUp() && (e.key === "Enter" || e.key === " " || e.key === "ArrowRight")) {
       e.preventDefault();
       lightsOut();
       return;
@@ -514,7 +568,7 @@
     if (e.key === "m" || e.key === "M") toggleSound();
     if (e.key === "r" || e.key === "R") restart();
     if (e.key >= "1" && e.key <= "9") go(+e.key - 1);
-    if (e.key === "0") go(9);
+    if (e.key === "0") go(slides.length - 1);
   }
 
   initCircuit();
@@ -531,11 +585,21 @@
     $("#boot-overlay").hidden = true;
     document.body.classList.remove("boot");
     state.started = true;
+    state.race = true;
     state.i = n;
     slides.forEach((s, i) => s.classList.toggle("active", i === n));
     setHud();
     paintCircuit();
     onEnter(n);
+  } else {
+    $("#boot-overlay").classList.add("off");
+    $("#boot-overlay").hidden = true;
+    document.body.classList.remove("boot");
+    document.body.classList.add("neural-scene");
+    slides[0].classList.add("active");
+    setHud();
+    paintCircuit();
+    onEnter(0);
   }
   addEventListener("resize", () => { resize(); paintCircuit(); });
   addEventListener("keydown", onKey);
@@ -545,13 +609,16 @@
     if (e.target.closest(".hud-btn")) return;
     lightsOut();
   });
-  $("#btn-next").addEventListener("click", () => (state.started ? next() : lightsOut()));
+  $("#btn-next").addEventListener("click", () => {
+    if (overlayUp()) lightsOut();
+    else next();
+  });
   $("#btn-prev").addEventListener("click", () => (state.started ? prev() : null));
   $("#btn-sound").addEventListener("click", toggleSound);
   $("#btn-fs").addEventListener("click", toggleFs);
 
   $("#deck").addEventListener("click", (e) => {
-    if (!state.started) return;
+    if (!state.started || overlayUp()) return;
     if (e.target.closest("button, a, .circuit")) return;
     if (e.clientX > innerWidth * 0.28) next();
     else prev();
@@ -562,7 +629,8 @@
   addEventListener("touchend", (e) => {
     const dx = e.changedTouches[0].clientX - touchX;
     if (Math.abs(dx) < 50) return;
-    if (!state.started) { lightsOut(); return; }
+    if (overlayUp()) { lightsOut(); return; }
+    if (!state.race && state.i === 0) { showLightsGate(); return; }
     if (dx < 0) next(); else prev();
   }, { passive: true });
 })();

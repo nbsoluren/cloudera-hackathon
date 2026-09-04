@@ -441,6 +441,142 @@ h2 .red { color: var(--red); }
 
 .mega { font-size: clamp(52px, 9vw, 118px); }
 
+/* formation · neural pit wall */
+.neural-slide {
+  overflow: hidden;
+}
+.neural-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+.neural-svg {
+  position: absolute;
+  right: -8%;
+  top: 6%;
+  width: min(1080px, 78vw);
+  height: 88%;
+  opacity: .9;
+}
+.neural-line {
+  stroke-dasharray: 8 14;
+  animation: synapseFlow 4.5s linear infinite;
+  opacity: .55;
+}
+.neural-line-b { animation-duration: 6s; animation-direction: reverse; opacity: .4; }
+.neural-line-c { stroke-dasharray: 2 10; animation-duration: 3.2s; opacity: .45; }
+.neural-line-d { animation-duration: 5.2s; opacity: .35; }
+.neural-race {
+  stroke-dasharray: 18 12;
+  animation: raceLine 2.8s linear infinite;
+}
+@keyframes synapseFlow {
+  to { stroke-dashoffset: -120; }
+}
+@keyframes raceLine {
+  to { stroke-dashoffset: -240; }
+}
+.neural-nodes circle {
+  fill: #3df5ff;
+  stroke: #fff;
+  stroke-width: 1;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: nodePulse 2.4s ease-in-out infinite;
+}
+.neural-nodes circle:nth-child(odd) { animation-delay: .6s; fill: #e10600; }
+.neural-nodes circle:nth-child(3n) { animation-delay: 1.1s; fill: #f68b1f; }
+@keyframes nodePulse {
+  0%, 100% { opacity: .55; transform: scale(.85); }
+  50% { opacity: 1; transform: scale(1.25); }
+}
+.neural-packet {
+  filter: drop-shadow(0 0 8px #3df5ff);
+}
+.neural-packet.dim {
+  filter: drop-shadow(0 0 6px #e10600);
+}
+
+.visor {
+  position: absolute;
+  right: 4%;
+  top: 18%;
+  width: min(420px, 38vw);
+  aspect-ratio: 16 / 9;
+  clip-path: polygon(8% 18%, 92% 10%, 100% 78%, 0 92%);
+  background: linear-gradient(160deg, rgba(61,245,255,.12), rgba(8,8,12,.55) 42%, rgba(225,6,0,.18));
+  border: 1px solid rgba(61,245,255,.35);
+  box-shadow: 0 0 40px rgba(61,245,255,.18), inset 0 0 40px rgba(0,0,0,.45);
+  overflow: hidden;
+  opacity: .85;
+}
+.visor-glass {
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(180deg, transparent 0 7px, rgba(61,245,255,.05) 7px 8px),
+    radial-gradient(ellipse at 70% 40%, rgba(61,245,255,.2), transparent 55%);
+}
+.visor-scan {
+  position: absolute;
+  left: 0; right: 0;
+  height: 28%;
+  background: linear-gradient(180deg, transparent, rgba(61,245,255,.28), transparent);
+  animation: visorScan 3.4s ease-in-out infinite;
+}
+@keyframes visorScan {
+  0% { top: -20%; }
+  100% { top: 90%; }
+}
+.visor-hud {
+  position: absolute;
+  left: 12%;
+  top: 28%;
+  font-family: var(--hud);
+  font-size: 11px;
+  letter-spacing: .22em;
+  color: var(--cyan);
+  text-shadow: 0 0 10px rgba(61,245,255,.8);
+}
+.visor-hud-b {
+  top: 58%;
+  left: 18%;
+  color: var(--orange);
+  font-size: 10px;
+}
+
+.neural-inner {
+  position: relative;
+  z-index: 2;
+  max-width: 640px;
+}
+.neural-inner .lede { max-width: 560px; }
+
+body.neural-scene .horizon {
+  background: linear-gradient(90deg, transparent, var(--cyan), var(--red), var(--cyan), transparent);
+  box-shadow: 0 0 24px var(--cyan);
+}
+body.neural-scene .sky {
+  background:
+    radial-gradient(ellipse 80% 50% at 70% 80%, rgba(61,245,255,.18), transparent 60%),
+    radial-gradient(ellipse 40% 30% at 30% 20%, rgba(225,6,0,.16), transparent 50%),
+    linear-gradient(#0b0c10, #14151c);
+}
+body.neural-scene .road-surface { animation-duration: 1.6s; }
+body.neural-scene .lane,
+body.neural-scene .rumble { animation-duration: 1.4s; }
+.neural-hint {
+  margin-top: 22px;
+  color: var(--cyan);
+}
+
+@media (max-width: 900px) {
+  .visor { display: none; }
+  .neural-svg { right: -20%; width: 120vw; opacity: .45; }
+  .neural-inner { max-width: 100%; }
+}
+
 .tag-row {
   display: flex;
   gap: 10px;
