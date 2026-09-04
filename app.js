@@ -238,9 +238,12 @@
     const stage = $(".crash-stage");
     if (!stage) return;
     stage.classList.remove("play");
-    void stage.offsetWidth;
-    stage.classList.add("play");
-    document.body.classList.add("crash-scene");
+    document.body.classList.remove("crash-scene", "crashing", "crash-dead");
+    crashTimers.push(setTimeout(() => {
+      void stage.offsetWidth;
+      stage.classList.add("play");
+      document.body.classList.add("crash-scene");
+    }, 90));
     crashTimers.push(setTimeout(() => {
       crashPhase = "dead";
       document.body.classList.add("crashing", "crash-dead");
@@ -250,7 +253,7 @@
       if (voice.engine) {
         setTimeout(() => { try { voice.engine.pause(); } catch (_) {} }, 180);
       }
-    }, 690));
+    }, 780));
     crashTimers.push(setTimeout(() => {
       document.body.classList.remove("crashing");
     }, 1220));
