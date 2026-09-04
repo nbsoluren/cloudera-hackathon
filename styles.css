@@ -658,7 +658,10 @@ body.crashing .world {
   left: -80%;
   bottom: 18px;
   z-index: 3;
+  overflow: visible;
   will-change: left, transform;
+}
+.crash-car .car-photo {
   filter: drop-shadow(0 18px 18px rgba(0,0,0,.55));
 }
 .crash-car .smear {
@@ -690,7 +693,7 @@ body.crashing .world {
   100% { left: 9%; transform: translateY(18px) rotate(-17deg); }
 }
 body.crash-dead .crash-car .car-photo {
-  filter: contrast(1.2) saturate(.65) brightness(.82);
+  filter: drop-shadow(0 18px 18px rgba(0,0,0,.55)) contrast(1.2) saturate(.65) brightness(.82);
 }
 
 .debris i {
@@ -746,32 +749,36 @@ body.crash-dead .crash-car .car-photo {
 
 .fire {
   position: absolute;
-  right: 10%;
-  bottom: 42px;
+  right: 6%;
+  bottom: 12%;
   transform-origin: 50% 100%;
   z-index: 4;
   pointer-events: none;
   opacity: 0;
 }
 .fire-glow {
-  width: 220px;
-  height: 180px;
-  background: radial-gradient(ellipse at 50% 88%, rgba(255,80,20,.55) 0 28%, transparent 70%);
-  filter: blur(18px);
+  right: -4%;
+  bottom: 4%;
+  width: 42%;
+  height: 78%;
+  background: radial-gradient(ellipse at 50% 88%, rgba(255,80,20,.6) 0 28%, transparent 70%);
+  filter: blur(16px);
 }
 .fire-mid {
-  right: 14%;
-  width: 130px;
-  height: 170px;
+  right: 4%;
+  bottom: 10%;
+  width: 28%;
+  height: 72%;
   background: radial-gradient(ellipse at 50% 90%, #ffcc00 0 12%, #e10600 38%, transparent 70%);
-  filter: blur(8px);
+  filter: blur(7px);
 }
 .fire-core {
-  right: 16%;
-  width: 70px;
-  height: 130px;
+  right: 10%;
+  bottom: 16%;
+  width: 16%;
+  height: 58%;
   background: radial-gradient(ellipse at 50% 92%, #fff 0 14%, #ffcc00 32%, #ff2a2a 58%, transparent 74%);
-  filter: blur(4px);
+  filter: blur(3px);
 }
 .crash-stage.play .fire-glow {
   animation: fireUp .4s .88s ease-out forwards, flicker .18s 1.22s infinite;
