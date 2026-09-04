@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TDA · Technical Debt Analyzer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%23000' width='100' height='100'/><polygon fill='%23e10600' points='15,70 85,30 85,50 15,90'/></svg>" />
+</head>
+<body class="boot">
+  <canvas id="fx" aria-hidden="true"></canvas>
+  <div class="grain" aria-hidden="true"></div>
+  <div class="speedlines" aria-hidden="true"></div>
+
+  <div class="world" aria-hidden="true">
+    <div class="sky"></div>
+    <div class="horizon"></div>
+    <div class="road">
+      <div class="road-surface"></div>
+      <div class="lane"></div>
+      <div class="rumble rumble-l"></div>
+      <div class="rumble rumble-r"></div>
+    </div>
+  </div>
+
+  <header class="hud">
+    <div class="hud-cluster hud-left">
+      <div class="pos-box">01</div>
+      <div class="hud-stack">
+        <span class="hud-label">TDA · RACE CONTROL</span>
+        <strong id="hud-flag">FORMATION LAP</strong>
+      </div>
+    </div>
+    <div class="hud-cluster hud-mid">
+      <div class="telemetry">
+        <div><span>SECTOR</span><b id="hud-sector">00</b></div>
+        <div><span>LAP</span><b>01</b></div>
+        <div><span>SPEED</span><b id="hud-speed">000</b></div>
+        <div><span>GEAR</span><b id="hud-gear">N</b></div>
+        <div><span>RPM</span><b id="hud-rpm">0000</b></div>
+      </div>
+    </div>
+    <div class="hud-cluster hud-right">
+      <button class="hud-btn" id="btn-sound" type="button" aria-label="Toggle sound">MUTED</button>
+      <button class="hud-btn" id="btn-fs" type="button" aria-label="Fullscreen">FULL</button>
+    </div>
+  </header>
+
+  <div class="overlay" id="boot-overlay">
+    <div class="boot-mark">CLOUDERA HACKATHON</div>
+    <div class="boot-car car-mount" data-car="idle" aria-hidden="true"></div>
+    <p class="boot-kicker">SHIFT-LEFT SPRINT INTELLIGENCE</p>
+    <h1 class="boot-title">TECHNICAL DEBT<br />ANALYZER</h1>
+    <div class="lights" id="start-lights" aria-hidden="true">
+      <span></span><span></span><span></span><span></span><span></span>
+    </div>
+    <button class="go-btn" id="btn-go" type="button">LIGHTS OUT</button>
+    <p class="boot-hint">F fullscreen · arrows / space to drive · ? help</p>
+  </div>
+
+  <main id="deck" aria-live="polite">
+
+    <section class="slide" data-flag="GREEN FLAG" data-sector="01">
+      <div class="slide-inner title-slide">
+        <p class="kicker red-stripe">P1 · THE GRID</p>
+        <h2 class="mega">
+          WIN THE RACE<br /><em>IN THE GARAGE.</em>
+        </h2>
+        <p class="lede">
+          Technical Debt Analyzer turns planned feature work into
+          <strong>evidence-backed quality and hardening tasks</strong>
+          before defects reach production.
+        </p>
+        <div class="hero-car-wrap">
+          <div class="exhaust"></div>
+          <div class="car-mount hero-car" data-car="hero"></div>
+        </div>
+        <ul class="tag-row">
+          <li>SHIFT-LEFT</li>
+          <li>SPRINT INTELLIGENCE</li>
+          <li>EVIDENCE, NOT OPINION</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="slide" data-flag="SAFETY CAR" data-sector="02">
+      <div class="slide-inner">
+        <p class="kicker yellow-stripe">SECTOR 2 · THE CRASH</p>
+        <h2>YOU SHIPPED AT<br /><span class="red">RACE PACE.</span></h2>
+        <p class="lede">Production was the first time anyone saw the corner.</p>
+        <div class="flag-chip sc crash-badge">P1 INCIDENT</div>
+        <div class="crash-stage">
+          <div class="car-mount crash-car" data-car="crash"></div>
+          <div class="boom"></div>
+        </div>
+        <div class="stat-row">
+          <article><b>WAR ROOM</b><span>Rollback. Blame. Lost weekend.</span></article>
+          <article><b>DNF</b><span>Did not finish — a defect in production.</span></article>
+          <article><b>TOO LATE</b><span>Quality work starts after the crash.</span></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-flag="YELLOW FLAG" data-sector="03">
+      <div class="slide-inner">
+        <p class="kicker yellow-stripe">SECTOR 3 · THE GAP</p>
+        <h2>QUALITY IS ALWAYS<br />A LAP TOO LATE.</h2>
+        <div class="split">
+          <div class="panel">
+            <h3>WHAT THE SPRINT OPTIMIZES</h3>
+            <ul class="ticks">
+              <li>Feature throughput</li>
+              <li>Story points on the board</li>
+              <li>Merge velocity</li>
+              <li>Demo-ready happy path</li>
+            </ul>
+          </div>
+          <div class="panel danger">
+            <h3>WHAT NEVER GETS A TICKET</h3>
+            <ul class="ticks">
+              <li>Coverage holes on the change path</li>
+              <li>The last P1 on that same service</li>
+              <li>Complexity hotspots about to be touched</li>
+              <li>Hardening that would have prevented the crash</li>
+            </ul>
+          </div>
+        </div>
+        <p class="callout">Shift-left is a poster on the wall — not a ticket in the sprint.</p>
+      </div>
+    </section>
+
+    <section class="slide" data-flag="PIT LANE" data-sector="04">
+      <div class="slide-inner">
+        <p class="kicker orange-stripe">SECTOR 4 · TWO CARS</p>
+        <h2>SAME FEATURE. <span class="red">DIFFERENT RACE.</span></h2>
+        <div class="two-cars">
+          <article class="lane-card crash-lane">
+            <header>CAR A · REACTIVE</header>
+            <p class="lane-title">Plan → Build → Ship → Crash</p>
+            <div class="mini-track">
+              <span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot crash"></span>
+            </div>
+            <p>Quality arrives as a hotfix. Telemetry is a post-mortem.</p>
+            <div class="flag-chip sc">SAFETY CAR</div>
+          </article>
+          <article class="lane-card tda-lane">
+            <header>CAR B · TDA</header>
+            <p class="lane-title">Plan → Evidence → Harden → Ship</p>
+            <div class="mini-track">
+              <span class="dot pit"></span><span class="dot"></span><span class="dot"></span><span class="dot green"></span>
+            </div>
+            <p>Quality is scheduled with the feature. Telemetry is the pit wall.</p>
+            <div class="flag-chip gf">GREEN FLAG</div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-flag="RACE ENGINEER" data-sector="05">
+      <div class="slide-inner">
+        <p class="kicker red-stripe">SECTOR 5 · THE CAR</p>
+        <h2>THE RACE ENGINEER<br />FOR SPRINT PLANNING.</h2>
+        <p class="lede">
+          TDA reads the grid, pulls telemetry, and writes the pit board
+          <em>before lights out.</em>
+        </p>
+        <div class="caps">
+          <article>
+            <span class="num">01</span>
+            <h3>MAP THE GRID</h3>
+            <p>Planned stories → services, files, and blast radius.</p>
+          </article>
+          <article>
+            <span class="num">02</span>
+            <h3>PULL TELEMETRY</h3>
+            <p>Git churn, coverage, incidents, complexity — cited.</p>
+          </article>
+          <article>
+            <span class="num">03</span>
+            <h3>WRITE THE PIT BOARD</h3>
+            <p>Hardening tasks drop into the same sprint, with evidence.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-flag="POWER UNIT" data-sector="06">
+      <div class="slide-inner">
+        <p class="kicker orange-stripe">SECTOR 6 · THE ENGINE</p>
+        <h2>FIVE STAGES. ONE LAP.</h2>
+        <div class="engine" id="engine">
+          <div class="engine-track" aria-hidden="true"></div>
+          <ol class="stages">
+            <li data-stage="0"><b>INGEST</b><span>Sprint stories from Jira / ADO</span></li>
+            <li data-stage="1"><b>MAP</b><span>Story → code, service, owners</span></li>
+            <li data-stage="2"><b>RETRIEVE</b><span>Lakehouse + RAG evidence</span></li>
+            <li data-stage="3"><b>SCORE</b><span>Risk, blast radius, urgency</span></li>
+            <li data-stage="4"><b>EMIT</b><span>Hardening tickets with citations</span></li>
+          </ol>
+          <div class="engine-car car-mount" id="engine-car" data-car="engine"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-flag="PIT WALL" data-sector="07">
+      <div class="slide-inner pit-slide">
+        <p class="kicker red-stripe">SECTOR 7 · PIT WALL LIVE</p>
+        <h2>A STORY BECOMES A STRATEGY.</h2>
+        <div class="pit-grid">
+          <article class="story-card" id="story-card">
+            <header>
+              <span class="pos-box sm">STORY</span>
+              PAY-218
+            </header>
+            <h3>Add express checkout to payments</h3>
+            <p>Sprint 42 · 8 points · Payments squad</p>
+          </article>
+          <article class="scan-card" id="scan-card">
+            <header>TELEMETRY LOCK</header>
+            <div class="risk-meter">
+              <span>RISK</span>
+              <div class="bar"><i id="risk-fill"></i></div>
+              <b id="risk-val">00</b>
+            </div>
+            <ul class="evidence" id="evidence-list"></ul>
+          </article>
+          <article class="tower" id="tower">
+            <header>PIT BOARD · HARDENING TASKS</header>
+            <ol id="tower-rows"></ol>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-flag="GARAGE" data-sector="08">
+      <div class="slide-inner">
+        <p class="kicker orange-stripe">SECTOR 8 · CLOUDERA POWER UNIT</p>
+        <h2>BUILT TO RUN ON<br />CLOUDERA AI.</h2>
+        <div class="arch">
+          <div class="arch-col">
+            <h3>TELEMETRY STORE</h3>
+            <ul>
+              <li>Open lakehouse · Iceberg evidence tables</li>
+              <li>Git, Jira, incidents, coverage, SAST</li>
+              <li>Cloudera Data Engineering for the ETL lap</li>
+            </ul>
+          </div>
+          <div class="arch-col accent">
+            <h3>CREW ON THE WALL</h3>
+            <ul>
+              <li><b>Strategist</b> maps stories to blast radius</li>
+              <li><b>Telemetry</b> retrieves cited evidence (RAG)</li>
+              <li><b>Race Engineer</b> scores risk</li>
+              <li><b>Pit Wall</b> writes tickets into the sprint</li>
+            </ul>
+          </div>
+          <div class="arch-col">
+            <h3>PARC FERMÉ</h3>
+            <ul>
+              <li>SDX governance, lineage, access</li>
+              <li>Every task cites its evidence</li>
+              <li>Humans keep the steering wheel</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-flag="CHEQ. FLAG" data-sector="09">
+      <div class="slide-inner compact">
+        <p class="kicker red-stripe">SECTOR 9 · THE DELTA</p>
+        <h2>WHAT CHANGES<br />WHEN QUALITY HAS A CAR.</h2>
+        <div class="impact">
+          <article>
+            <b class="count" data-count="100">0</b><span>%</span>
+            <p>of planned stories get a risk read before the sprint locks</p>
+          </article>
+          <article>
+            <b class="count" data-count="1">0</b>
+            <p>sprint — hardening ships with the feature, not the post-mortem</p>
+          </article>
+          <article>
+            <b class="count" data-count="4">0</b>
+            <p>cited tasks from one payments story — evidence on every ticket</p>
+          </article>
+        </div>
+        <p class="callout">We instrument escaped defects on TDA-touched services. Championships are measured, not claimed.</p>
+      </div>
+    </section>
+
+    <section class="slide finale" data-flag="P1" data-sector="10">
+      <div class="slide-inner finale-inner">
+        <div class="chequer" aria-hidden="true"></div>
+        <p class="kicker">LIGHTS OUT AND AWAY WE GO</p>
+        <h2>CHAMPIONSHIPS ARE WON<br />IN THE GARAGE.</h2>
+        <p class="lede finale-lede">
+          Technical Debt Analyzer — shift-left sprint intelligence that turns
+          planned feature work into evidence-backed quality and hardening tasks
+          before defects reach production.
+        </p>
+        <div class="finale-car car-mount" data-car="finale"></div>
+        <p class="finale-mark">TDA · CLOUDERA HACKATHON</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="trackbar">
+    <button class="nav-btn" id="btn-prev" type="button" aria-label="Previous">◀</button>
+    <div class="circuit" id="circuit"></div>
+    <button class="nav-btn" id="btn-next" type="button" aria-label="Next">▶</button>
+    <div class="track-car car-mount" id="track-car" data-car="track" aria-hidden="true"></div>
+  </footer>
+
+  <div class="help" id="help" hidden>
+    <h3>RACE CONTROL</h3>
+    <ul>
+      <li><kbd>Space</kbd> / <kbd>→</kbd> next sector</li>
+      <li><kbd>←</kbd> previous</li>
+      <li><kbd>F</kbd> fullscreen</li>
+      <li><kbd>M</kbd> sound</li>
+      <li><kbd>R</kbd> restart from lights</li>
+      <li><kbd>1</kbd>–<kbd>0</kbd> jump sector</li>
+      <li><kbd>?</kbd> close this</li>
+    </ul>
+  </div>
+
+  <template id="car-template">
+    <svg viewBox="0 0 820 220" class="car-svg" aria-hidden="true">
+      <ellipse cx="410" cy="198" rx="310" ry="16" fill="#000" opacity=".55"/>
+      <g class="wheel rear">
+        <ellipse cx="175" cy="168" rx="52" ry="52" fill="#111"/>
+        <ellipse cx="175" cy="168" rx="34" ry="34" fill="#2a2a2e"/>
+        <ellipse cx="175" cy="168" rx="14" ry="14" fill="#888"/>
+        <path d="M175 136 L175 200 M143 168 L207 168" stroke="#ffcc00" stroke-width="3"/>
+      </g>
+      <g class="wheel front">
+        <ellipse cx="640" cy="168" rx="48" ry="48" fill="#111"/>
+        <ellipse cx="640" cy="168" rx="31" ry="31" fill="#2a2a2e"/>
+        <ellipse cx="640" cy="168" rx="13" ry="13" fill="#888"/>
+        <path d="M640 138 L640 198 M610 168 L670 168" stroke="#ffcc00" stroke-width="3"/>
+      </g>
+      <polygon points="118,128 118,78 168,62 188,62 188,128" fill="#1a1a1d"/>
+      <polygon points="122,82 162,68 162,88 122,100" fill="#e10600"/>
+      <polygon points="90,150 210,118 760,118 790,138 760,158 90,168" fill="#141416"/>
+      <polygon points="210,118 250,78 560,78 620,118" fill="#e10600"/>
+      <polygon points="250,78 290,48 430,42 500,52 560,78" fill="#0c0c0e"/>
+      <polygon points="300,52 410,46 490,56 470,78 320,78" fill="#e10600"/>
+      <polygon points="355,50 430,48 455,70 370,72" fill="#3df5ff" opacity=".85"/>
+      <rect x="338" y="40" width="90" height="8" rx="2" fill="#ccc"/>
+      <polygon points="620,118 760,118 790,138 700,138" fill="#e10600"/>
+      <polygon points="700,118 820,148 780,158 680,138" fill="#b10c0e"/>
+      <polygon points="700,128 818,150 790,156 690,138" fill="#ddd"/>
+      <polygon points="90,150 40,158 48,168 90,168" fill="#888"/>
+      <text x="300" y="112" fill="#fff" font-family="Bebas Neue, sans-serif" font-size="36" letter-spacing="4">TDA</text>
+      <text x="430" y="110" fill="#111" font-family="Bebas Neue, sans-serif" font-size="28">01</text>
+      <rect x="248" y="96" width="22" height="18" fill="#f4f4f1"/>
+      <rect x="248" y="96" width="6" height="18" fill="#e10600"/>
+    </svg>
+  </template>
+
+  <script src="app.js"></script>
+</body>
+</html>
