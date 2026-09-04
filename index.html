@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=20260904b" />
+  <link rel="stylesheet" href="styles.css?v=20260904c" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%23000' width='100' height='100'/><polygon fill='%23e10600' points='15,70 85,30 85,50 15,90'/></svg>" />
 </head>
 <body class="boot">
@@ -29,7 +29,7 @@
     <div class="hud-cluster hud-left">
       <div class="pos-box">01</div>
       <div class="hud-stack">
-        <span class="hud-label">CLOUDERA · RACE CONTROL</span>
+        <span class="hud-label">TDA · RACE CONTROL</span>
         <strong id="hud-flag">FORMATION LAP</strong>
       </div>
     </div>
@@ -53,8 +53,8 @@
     <div class="boot-car" aria-hidden="true">
       <img src="assets/car-cut.png" alt="" class="car-photo" />
     </div>
-    <p class="boot-kicker">CLOUDERA HACKATHON</p>
-    <h1 class="boot-title">LIGHTS OUT</h1>
+    <p class="boot-kicker">SHIFT-LEFT SPRINT INTELLIGENCE</p>
+    <h1 class="boot-title">TECHNICAL DEBT<br />ANALYZER</h1>
     <div class="lights" id="start-lights" aria-hidden="true">
       <span></span><span></span><span></span><span></span><span></span>
     </div>
@@ -64,69 +64,34 @@
 
   <main id="deck" aria-live="polite">
 
-    <section class="slide symbol-slide" data-flag="FORMATION LAP" data-sector="01">
-      <div class="slide-inner">
-        <p class="kicker orange-stripe">SECTOR 1</p>
-        <div class="symbols" aria-hidden="true">
-          <article class="symbol">
-            <svg viewBox="0 0 200 160" class="symbol-svg">
-              <path d="M28 52 L100 18 L172 52" fill="none" stroke="#e10600" stroke-width="6"/>
-              <rect x="36" y="52" width="128" height="86" fill="none" stroke="#f4f4f1" stroke-width="5"/>
-              <rect x="36" y="52" width="128" height="18" fill="#e10600"/>
-              <rect x="88" y="86" width="24" height="52" fill="#3df5ff"/>
-              <circle cx="72" cy="118" r="16" fill="#e10600"/>
-              <circle cx="128" cy="118" r="16" fill="#f4f4f1"/>
-              <rect x="64" y="108" width="16" height="22" fill="#111"/>
-              <rect x="120" y="108" width="16" height="22" fill="#111"/>
-            </svg>
-          </article>
-          <article class="symbol">
-            <svg viewBox="0 0 200 160" class="symbol-svg">
-              <path d="M28 128 V32 H172" fill="none" stroke="#333" stroke-width="4"/>
-              <path d="M28 118 L62 78 L92 96 L128 44 L172 44" fill="none" stroke="#3df5ff" stroke-width="6" stroke-linejoin="miter"/>
-              <circle cx="62" cy="78" r="8" fill="#3df5ff"/>
-              <circle cx="92" cy="96" r="8" fill="#f68b1f"/>
-              <circle cx="128" cy="44" r="8" fill="#e10600"/>
-              <path d="M148 70 L172 70 L172 94" fill="none" stroke="#f4f4f1" stroke-width="4"/>
-            </svg>
-          </article>
-          <article class="symbol">
-            <svg viewBox="0 0 200 160" class="symbol-svg">
-              <path d="M18 52 H78 L98 28 H170" fill="none" stroke="#f4f4f1" stroke-width="7"/>
-              <path d="M18 86 H92 L112 62 H170" fill="none" stroke="#e10600" stroke-width="7"/>
-              <path d="M18 120 H106 L126 96 H170" fill="none" stroke="#f68b1f" stroke-width="7"/>
-              <polygon points="170,20 170,108 196,64" fill="#e10600"/>
-            </svg>
-          </article>
+    <section class="slide" data-flag="GREEN FLAG" data-sector="01">
+      <div class="slide-inner title-slide">
+        <p class="kicker red-stripe">P1 · THE GRID</p>
+        <h2 class="mega">
+          WIN THE RACE<br /><em>IN THE GARAGE.</em>
+        </h2>
+        <p class="lede">
+          Technical Debt Analyzer turns planned feature work into
+          <strong>evidence-backed quality and hardening tasks</strong>
+          before defects reach production.
+        </p>
+        <div class="hero-car-wrap">
+          <div class="exhaust"></div>
+          <img src="assets/car-cut.png" alt="" class="car-photo hero-car" />
         </div>
+        <ul class="tag-row">
+          <li>SHIFT-LEFT</li>
+          <li>SPRINT INTELLIGENCE</li>
+          <li>EVIDENCE, NOT OPINION</li>
+        </ul>
       </div>
     </section>
 
-    <section class="slide" data-flag="YELLOW FLAG" data-sector="02">
+    <section class="slide crash-slide" data-flag="SAFETY CAR" data-sector="02">
       <div class="slide-inner">
-        <p class="kicker yellow-stripe">SECTOR 2 · THE QUESTION</p>
-        <h2>HOW DO WE EXPOSE OUR DATA<br />TO <span class="red">WIN THE GRID?</span></h2>
-        <p class="lede q-lede">How do we turn what we already know into a competitive advantage — not a dashboard our competitors can copy?</p>
-        <div class="q-grid">
-          <article>
-            <header>DETERMINISTIC → PROBABILISTIC</header>
-            <p>We are no longer grading a known output. We are grading a <strong>probabilistic</strong> one.</p>
-            <b>How do we handle that?</b>
-          </article>
-          <article>
-            <header>SPEED vs PROTECTION</header>
-            <p>Agentic pace is a weapon. Ungoverned, it is also a crash.</p>
-            <b>How do we leverage that speed — and still protect ourselves?</b>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <section class="slide crash-slide" data-flag="SAFETY CAR" data-sector="03">
-      <div class="slide-inner">
-        <p class="kicker yellow-stripe">SECTOR 3 · THE CRASH</p>
+        <p class="kicker yellow-stripe">SECTOR 2 · THE CRASH</p>
         <h2>YOU SHIPPED AT<br /><span class="red">RACE PACE.</span></h2>
-        <p class="lede">Ungoverned speed. Production was the first time anyone saw the corner.</p>
+        <p class="lede">Production was the first time anyone saw the corner.</p>
         <div class="crash-flash" aria-hidden="true"></div>
         <div class="crash-vignette" aria-hidden="true"></div>
         <div class="crash-stage">
@@ -150,30 +115,6 @@
           <article><b>DNF</b><span>Did not finish — a defect in production.</span></article>
           <article><b>TOO LATE</b><span>Quality work starts after the crash.</span></article>
         </div>
-      </div>
-    </section>
-
-    <section class="slide reveal-slide" data-flag="GREEN FLAG" data-sector="04">
-      <div class="slide-inner title-slide">
-        <p class="kicker red-stripe">P1 · THE ANSWER</p>
-        <p class="reveal-mark">THIS IS</p>
-        <h2 class="mega">
-          TECHNICAL DEBT<br /><em>ANALYZER.</em>
-        </h2>
-        <p class="lede">
-          Shift-left sprint intelligence that turns planned feature work into
-          <strong>evidence-backed quality and hardening tasks</strong>
-          before defects reach production.
-        </p>
-        <div class="hero-car-wrap">
-          <div class="exhaust"></div>
-          <img src="assets/car-cut.png" alt="" class="car-photo hero-car" />
-        </div>
-        <ul class="tag-row">
-          <li>EXPOSE THE TELEMETRY</li>
-          <li>GRADE THE PROBABILITY</li>
-          <li>PROTECT AT RACE PACE</li>
-        </ul>
       </div>
     </section>
 
@@ -437,6 +378,6 @@
     </svg>
   </template>
 
-  <script src="app.js?v=20260904b"></script>
+  <script src="app.js?v=20260904c"></script>
 </body>
 </html>
