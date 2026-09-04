@@ -75,6 +75,7 @@
       $("#hud-speed").textContent = String(shown).padStart(3, "0");
       $("#hud-gear").textContent = "N";
       $("#hud-rpm").textContent = shown < 8 ? "----" : String(Math.round(rpm)).padStart(4, "0");
+      driveVoice();
       requestAnimationFrame(tickTelemetry);
       return;
     }
@@ -88,27 +89,127 @@
     const rpmTarget = 3500 + shown * 18;
     rpm += (rpmTarget - rpm) * 0.1;
     $("#hud-rpm").textContent = String(Math.round(rpm)).padStart(4, "0");
+    driveVoice();
     requestAnimationFrame(tickTelemetry);
   }
 
-  function whoosh() {
+  const voice = {
+    ready: false,
+    oscA: null,
+    oscB: null,
+    oscC: null,
+    filt: null,
+    master: null,
+    noise: null,
+    noiseFilt: null,
+    noiseGain: null,
+    blipUntil: 0,
+  };
+
+  function audioCtx() {
+    state.audio = state.audio || new (window.AudioContext || window.webkitAudioContext)();
+    if (state.audio.state === "suspended") state.audio.resume();
+    return state.audio;
+  }
+
+  function startVoice() {
+    if (state.muted || voice.ready) return;
+    const ac = audioCtx();
+    const oscA = ac.createOscillator();
+    const oscB = ac.createOscillator();
+    const oscC = ac.createOscillator();
+    oscA.type = "sawtooth";
+    oscB.type = "sawtooth";
+    oscC.type = "triangle";
+    const filt = ac.createBiquadFilter();
+    filt.type = "lowpass";
+    filt.Q.value = 1.6;
+    filt.frequency.value = 320;
+    const master = ac.createGain();
+    master.gain.value = 0;
+    oscA.connect(filt);
+    oscB.connect(filt);
+    oscC.connect(filt);
+    filt.connect(master);
+    master.connect(ac.destination);
+
+    const len = Math.floor(ac.sampleRate * 1.2);
+    const buf = ac.createBuffer(1, len, ac.sampleRate);
+    const data = buf.getChannelData(0);
+    let last = 0;
+    for (let i = 0; i < len; i++) {
+      last = last * 0.98 + (Math.random() * 2 - 1) * 0.02;
+      data[i] = Math.max(-1, Math.min(1, last * 6));
+    }
+    const noise = ac.createBufferSource();
+    noise.buffer = buf;
+    noise.loop = true;
+    const noiseFilt = ac.createBiquadFilter();
+    noiseFilt.type = "bandpass";
+    noiseFilt.frequency.value = 190;
+    noiseFilt.Q.value = 0.9;
+    const noiseGain = ac.createGain();
+    noiseGain.gain.value = 0;
+    noise.connect(noiseFilt).connect(noiseGain).connect(ac.destination);
+
+    oscA.start();
+    oscB.start();
+    oscC.start();
+    noise.start();
+
+    voice.ready = true;
+    voice.oscA = oscA;
+    voice.oscB = oscB;
+    voice.oscC = oscC;
+    voice.filt = filt;
+    voice.master = master;
+    voice.noise = noise;
+    voice.noiseFilt = noiseFilt;
+    voice.noiseGain = noiseGain;
+  }
+
+  function stopVoice() {
+    if (!voice.ready) return;
+    const ac = state.audio;
+    const t = ac.currentTime;
+    voice.master.gain.cancelScheduledValues(t);
+    voice.master.gain.setTargetAtTime(0, t, 0.04);
+    voice.noiseGain.gain.setTargetAtTime(0, t, 0.04);
+    const oscA = voice.oscA;
+    const oscB = voice.oscB;
+    const oscC = voice.oscC;
+    const noise = voice.noise;
+    voice.ready = false;
+    setTimeout(() => {
+      try { oscA.stop(); oscB.stop(); oscC.stop(); noise.stop(); } catch (_) {}
+    }, 180);
+  }
+
+  function driveVoice() {
+    if (!voice.ready || state.muted) return;
+    const ac = state.audio;
+    const t = ac.currentTime;
+    if (crashPhase === "dead") {
+      voice.master.gain.setTargetAtTime(0, t, 0.02);
+      voice.noiseGain.gain.setTargetAtTime(0, t, 0.02);
+      return;
+    }
+    const blip = performance.now() < voice.blipUntil;
+    const rpmN = blip ? 0.82 : Math.min(1, Math.max(0.08, (rpm - 700) / 8300));
+    const f = 42 + rpmN * 78;
+    voice.oscA.frequency.setTargetAtTime(f, t, 0.05);
+    voice.oscB.frequency.setTargetAtTime(f * 1.007, t, 0.05);
+    voice.oscC.frequency.setTargetAtTime(f * 2.0, t, 0.05);
+    voice.filt.frequency.setTargetAtTime(240 + rpmN * 980, t, 0.07);
+    voice.master.gain.setTargetAtTime(0.022 + rpmN * 0.038, t, 0.07);
+    voice.noiseFilt.frequency.setTargetAtTime(150 + rpmN * 240, t, 0.08);
+    voice.noiseGain.gain.setTargetAtTime(0.01 + rpmN * 0.028, t, 0.08);
+  }
+
+  function revBlip() {
     if (state.muted) return;
-    const ctx = state.audio || new (window.AudioContext || window.webkitAudioContext)();
-    state.audio = ctx;
-    if (ctx.state === "suspended") ctx.resume();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    const filter = ctx.createBiquadFilter();
-    osc.type = "sawtooth";
-    osc.frequency.setValueAtTime(140, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(46, ctx.currentTime + 0.28);
-    filter.type = "lowpass";
-    filter.frequency.value = 900;
-    gain.gain.setValueAtTime(0.05, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
-    osc.connect(filter).connect(gain).connect(ctx.destination);
-    osc.start();
-    osc.stop(ctx.currentTime + 0.32);
+    startVoice();
+    voice.blipUntil = performance.now() + 260;
   }
 
   function go(n) {
@@ -117,7 +218,7 @@
     if (next === state.i) return;
     state.shifting = true;
     document.body.classList.add("shifting");
-    whoosh();
+    revBlip();
     const prev = slides[state.i];
     const incoming = slides[next];
     prev.classList.add("exit-left");
@@ -173,33 +274,37 @@
 
   function crashSound() {
     if (state.muted) return;
-    const ac = state.audio || new (window.AudioContext || window.webkitAudioContext)();
-    state.audio = ac;
-    if (ac.state === "suspended") ac.resume();
+    const ac = audioCtx();
     const t = ac.currentTime;
-    const boom = ac.createOscillator();
-    const boomG = ac.createGain();
-    boom.type = "sine";
-    boom.frequency.setValueAtTime(90, t);
-    boom.frequency.exponentialRampToValueAtTime(28, t + 0.45);
-    boomG.gain.setValueAtTime(0.22, t);
-    boomG.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
-    boom.connect(boomG).connect(ac.destination);
-    boom.start(t);
-    boom.stop(t + 0.52);
-    const n = ac.createBuffer(1, ac.sampleRate * 0.35, ac.sampleRate);
-    const data = n.getChannelData(0);
-    for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / data.length);
-    const src = ac.createBufferSource();
-    src.buffer = n;
-    const filt = ac.createBiquadFilter();
-    filt.type = "bandpass";
-    filt.frequency.value = 1400;
-    const ng = ac.createGain();
-    ng.gain.setValueAtTime(0.16, t);
-    ng.gain.exponentialRampToValueAtTime(0.001, t + 0.32);
-    src.connect(filt).connect(ng).connect(ac.destination);
-    src.start(t);
+    driveVoice();
+    const thump = ac.createOscillator();
+    const thumpG = ac.createGain();
+    thump.type = "sine";
+    thump.frequency.setValueAtTime(72, t);
+    thump.frequency.exponentialRampToValueAtTime(22, t + 0.55);
+    thumpG.gain.setValueAtTime(0.2, t);
+    thumpG.gain.exponentialRampToValueAtTime(0.001, t + 0.55);
+    thump.connect(thumpG).connect(ac.destination);
+    thump.start(t);
+    thump.stop(t + 0.58);
+
+    const len = Math.floor(ac.sampleRate * 0.4);
+    const buf = ac.createBuffer(1, len, ac.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) {
+      const env = 1 - i / len;
+      data[i] = (Math.random() * 2 - 1) * env * env;
+    }
+    const grit = ac.createBufferSource();
+    grit.buffer = buf;
+    const hp = ac.createBiquadFilter();
+    hp.type = "highpass";
+    hp.frequency.value = 900;
+    const gritG = ac.createGain();
+    gritG.gain.setValueAtTime(0.09, t);
+    gritG.gain.exponentialRampToValueAtTime(0.001, t + 0.38);
+    grit.connect(hp).connect(gritG).connect(ac.destination);
+    grit.start(t);
   }
 
   let engineTimer = 0;
@@ -304,25 +409,27 @@
     setHud();
     paintCircuit();
     onEnter(0);
-    whoosh();
+    startVoice();
+    revBlip();
   }
 
   function wait(ms) { return new Promise((r) => setTimeout(r, ms)); }
 
-  function blip(freq, vol = 0.04) {
+  function blip(freq, vol = 0.03) {
     if (state.muted) return;
-    const ctx = state.audio || new (window.AudioContext || window.webkitAudioContext)();
-    state.audio = ctx;
-    if (ctx.state === "suspended") ctx.resume();
+    const ctx = audioCtx();
     const o = ctx.createOscillator();
     const g = ctx.createGain();
-    o.type = "square";
+    const f = ctx.createBiquadFilter();
+    o.type = "sine";
     o.frequency.value = freq;
+    f.type = "lowpass";
+    f.frequency.value = 900;
     g.gain.setValueAtTime(vol, ctx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
-    o.connect(g).connect(ctx.destination);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
+    o.connect(f).connect(g).connect(ctx.destination);
     o.start();
-    o.stop(ctx.currentTime + 0.13);
+    o.stop(ctx.currentTime + 0.11);
   }
 
   function restart() {
@@ -396,11 +503,8 @@
   function toggleSound() {
     state.muted = !state.muted;
     $("#btn-sound").textContent = state.muted ? "MUTED" : "ENGINE";
-    if (!state.muted) {
-      state.audio = state.audio || new (window.AudioContext || window.webkitAudioContext)();
-      state.audio.resume();
-      whoosh();
-    }
+    if (state.muted) stopVoice();
+    else startVoice();
   }
 
   function toggleFs() {

@@ -299,7 +299,15 @@ body.shifting .lane { animation-duration: .22s; }
   line-height: .85;
   letter-spacing: .04em;
 }
-.boot-car { width: min(720px, 80vw); margin: 8px auto 0; filter: drop-shadow(0 20px 30px rgba(225,6,0,.35)); }
+.car-photo {
+  width: 100%;
+  height: auto;
+  display: block;
+  pointer-events: none;
+  user-select: none;
+  filter: drop-shadow(0 18px 16px rgba(0,0,0,.55));
+}
+.boot-car { width: min(860px, 92vw); margin: 4px auto 0; }
 .boot-hint { font-family: var(--hud); font-size: 11px; color: var(--muted); letter-spacing: .12em; margin-top: 10px; }
 
 .lights {
@@ -450,16 +458,15 @@ h2 .red { color: var(--red); }
 
 .hero-car-wrap {
   position: relative;
-  width: min(860px, 92%);
-  margin: 8px 0 4px;
-  filter: drop-shadow(0 18px 24px rgba(0,0,0,.55));
+  width: min(920px, 96%);
+  margin: 0 0 4px -4%;
 }
 .title-slide .hero-car {
   animation: launch 1.1s cubic-bezier(.15,.8,.2,1) both;
 }
 @keyframes launch {
-  from { transform: translateX(-55%) skewX(-8deg); opacity: 0; filter: blur(6px); }
-  to { transform: none; opacity: 1; filter: none; }
+  from { transform: translateX(-18%); opacity: 0; }
+  to { transform: none; opacity: 1; }
 }
 .exhaust {
   position: absolute;
@@ -535,7 +542,7 @@ body.crashing .world {
 }
 .crash-stage {
   position: relative;
-  height: 230px;
+  height: 260px;
   margin: 10px 0 16px;
   overflow: visible;
 }
@@ -582,47 +589,38 @@ body.crashing .world {
 
 .crash-car {
   position: absolute;
-  width: min(540px, 58%);
+  width: min(860px, 86%);
   left: -50%;
-  top: 28px;
+  top: 48px;
   z-index: 3;
-  will-change: transform, filter;
+  will-change: transform;
 }
+.crash-car .smear {
+  position: absolute;
+  right: 62%;
+  top: 38%;
+  width: 90%;
+  height: 28%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.18), rgba(225,6,0,.28), transparent);
+  filter: blur(10px);
+  opacity: .85;
+  pointer-events: none;
+  z-index: 0;
+}
+body.crash-dead .crash-car .smear { opacity: 0; transition: opacity .15s; }
 .crash-stage.play .crash-car {
-  animation: smash 1.35s cubic-bezier(.12,.7,.2,1) forwards;
+  animation: smash 1.35s cubic-bezier(.12,.75,.18,1) forwards;
 }
 @keyframes smash {
-  0% {
-    left: -55%;
-    transform: translateY(0) rotate(-1deg) skewX(-14deg);
-    filter: blur(5px) brightness(1.2);
-  }
-  46% {
-    left: 34%;
-    transform: translateY(0) rotate(0deg) skewX(-8deg);
-    filter: blur(1px);
-  }
-  52% {
-    left: 44%;
-    transform: translateY(10px) rotate(14deg) skewX(0) scaleX(.82) scaleY(1.12);
-    filter: none;
-  }
-  64% {
-    left: 38%;
-    transform: translateY(8px) rotate(-26deg) scale(1);
-  }
-  80% {
-    left: 36%;
-    transform: translateY(20px) rotate(-48deg);
-  }
-  100% {
-    left: 32%;
-    transform: translateY(28px) rotate(-40deg);
-    filter: contrast(1.2) saturate(.65) brightness(.9);
-  }
+  0% { left: -62%; transform: translateY(6px); }
+  48% { left: 8%; transform: translateY(6px); }
+  54% { left: 22%; transform: translateY(12px) rotate(6deg); }
+  70% { left: 14%; transform: translateY(16px) rotate(-16deg); }
+  100% { left: 10%; transform: translateY(18px) rotate(-22deg); }
 }
-body.crash-dead .crash-car .wheel { animation: none; }
-body.crash-dead .crash-car .wheel.front { opacity: 0; }
+body.crash-dead .crash-car .car-photo {
+  filter: contrast(1.15) saturate(.7) brightness(.88);
+}
 
 .loose-wheel {
   position: absolute;
@@ -1163,7 +1161,7 @@ body.crash-dead .crash-car .wheel.front { opacity: 0; }
 .finale-inner { position: relative; text-align: center; }
 .finale h2 { font-size: clamp(48px, 8vw, 96px); }
 .finale-lede { margin: 0 auto; }
-.finale-car { width: min(680px, 80%); margin: 12px auto; }
+.finale-car { width: min(820px, 88%); margin: 4px auto; }
 .finale-mark {
   font-family: var(--hud);
   letter-spacing: .32em;
