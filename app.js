@@ -66,10 +66,21 @@
   let speed = 118;
   let rpm = 4200;
   let gear = 3;
+  let crashPhase = null;
   function tickTelemetry() {
-    const target = state.shifting ? 310 : state.started ? 186 : 72;
-    speed += (target - speed) * 0.08;
-    const wobble = Math.sin(Date.now() / 180) * (state.shifting ? 8 : 2);
+    if (crashPhase === "dead") {
+      speed += (0 - speed) * 0.22;
+      rpm += (0 - rpm) * 0.22;
+      const shown = Math.max(0, Math.round(speed));
+      $("#hud-speed").textContent = String(shown).padStart(3, "0");
+      $("#hud-gear").textContent = "N";
+      $("#hud-rpm").textContent = shown < 8 ? "----" : String(Math.round(rpm)).padStart(4, "0");
+      requestAnimationFrame(tickTelemetry);
+      return;
+    }
+    const target = crashPhase === "approach" ? 348 : state.shifting ? 310 : state.started ? 186 : 72;
+    speed += (target - speed) * (crashPhase === "approach" ? 0.16 : 0.08);
+    const wobble = Math.sin(Date.now() / 180) * (crashPhase === "approach" || state.shifting ? 10 : 2);
     const shown = Math.max(0, Math.round(speed + wobble));
     $("#hud-speed").textContent = String(shown).padStart(3, "0");
     gear = shown < 40 ? "N" : shown < 90 ? 2 : shown < 160 ? 4 : shown < 240 ? 6 : 8;
@@ -128,10 +139,67 @@
   function prev() { go(state.i - 1); }
 
   function onEnter(i) {
+    document.body.classList.remove("crash-scene", "crashing", "crash-dead");
+    crashPhase = null;
+    if (i === 1) playCrash();
     if (i === 5) startEngine();
     else stopEngine();
     if (i === 6) playPit();
     if (i === 8) playCounts();
+  }
+
+  let crashTimers = [];
+  function playCrash() {
+    crashTimers.forEach(clearTimeout);
+    crashTimers = [];
+    crashPhase = "approach";
+    const stage = $(".crash-stage");
+    if (!stage) return;
+    stage.classList.remove("play");
+    void stage.offsetWidth;
+    stage.classList.add("play");
+    document.body.classList.add("crash-scene");
+    crashTimers.push(setTimeout(() => {
+      crashPhase = "dead";
+      document.body.classList.add("crashing", "crash-dead");
+      $("#hud-flag").textContent = "RED FLAG";
+      crashSound();
+      crashBurst();
+    }, 690));
+    crashTimers.push(setTimeout(() => {
+      document.body.classList.remove("crashing");
+    }, 1220));
+  }
+
+  function crashSound() {
+    if (state.muted) return;
+    const ac = state.audio || new (window.AudioContext || window.webkitAudioContext)();
+    state.audio = ac;
+    if (ac.state === "suspended") ac.resume();
+    const t = ac.currentTime;
+    const boom = ac.createOscillator();
+    const boomG = ac.createGain();
+    boom.type = "sine";
+    boom.frequency.setValueAtTime(90, t);
+    boom.frequency.exponentialRampToValueAtTime(28, t + 0.45);
+    boomG.gain.setValueAtTime(0.22, t);
+    boomG.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
+    boom.connect(boomG).connect(ac.destination);
+    boom.start(t);
+    boom.stop(t + 0.52);
+    const n = ac.createBuffer(1, ac.sampleRate * 0.35, ac.sampleRate);
+    const data = n.getChannelData(0);
+    for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / data.length);
+    const src = ac.createBufferSource();
+    src.buffer = n;
+    const filt = ac.createBiquadFilter();
+    filt.type = "bandpass";
+    filt.frequency.value = 1400;
+    const ng = ac.createGain();
+    ng.gain.setValueAtTime(0.16, t);
+    ng.gain.exponentialRampToValueAtTime(0.001, t + 0.32);
+    src.connect(filt).connect(ng).connect(ac.destination);
+    src.start(t);
   }
 
   let engineTimer = 0;
@@ -282,6 +350,25 @@
         life: 1,
         w: 18 + Math.random() * 50,
         c: Math.random() > 0.5 ? "#e10600" : "#f68b1f",
+        kind: "streak",
+      });
+    }
+  }
+  function crashBurst() {
+    const cx = innerWidth * 0.62;
+    const cy = innerHeight * 0.48;
+    for (let i = 0; i < 110; i++) {
+      const a = (-Math.PI * 0.15) + Math.random() * Math.PI * 1.3;
+      const sp = 5 + Math.random() * 18;
+      parts.push({
+        x: cx,
+        y: cy,
+        vx: Math.cos(a) * sp,
+        vy: Math.sin(a) * sp - 4,
+        life: 1,
+        w: 3 + Math.random() * 16,
+        c: Math.random() > 0.35 ? "#ffcc00" : "#ff2a2a",
+        kind: "spark",
       });
     }
   }
@@ -289,12 +376,18 @@
     ctx.clearRect(0, 0, innerWidth, innerHeight);
     parts = parts.filter((p) => p.life > 0);
     for (const p of parts) {
-      ctx.globalAlpha = p.life * 0.7;
+      ctx.globalAlpha = p.life * 0.75;
       ctx.fillStyle = p.c;
-      ctx.fillRect(p.x, p.y, p.w, 2);
+      if (p.kind === "spark") {
+        ctx.fillRect(p.x, p.y, p.w, 2);
+        p.vy += 0.28;
+        p.life -= 0.018;
+      } else {
+        ctx.fillRect(p.x, p.y, p.w, 2);
+        p.life -= 0.025;
+      }
       p.x += p.vx;
       p.y += p.vy;
-      p.life -= 0.025;
     }
     ctx.globalAlpha = 1;
     requestAnimationFrame(drawFx);

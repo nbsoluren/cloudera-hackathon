@@ -14,6 +14,8 @@
   <canvas id="fx" aria-hidden="true"></canvas>
   <div class="grain" aria-hidden="true"></div>
   <div class="speedlines" aria-hidden="true"></div>
+  <div class="crash-flash" aria-hidden="true"></div>
+  <div class="crash-vignette" aria-hidden="true"></div>
 
   <div class="world" aria-hidden="true">
     <div class="sky"></div>
@@ -86,15 +88,24 @@
       </div>
     </section>
 
-    <section class="slide" data-flag="SAFETY CAR" data-sector="02">
+    <section class="slide crash-slide" data-flag="SAFETY CAR" data-sector="02">
       <div class="slide-inner">
         <p class="kicker yellow-stripe">SECTOR 2 · THE CRASH</p>
         <h2>YOU SHIPPED AT<br /><span class="red">RACE PACE.</span></h2>
         <p class="lede">Production was the first time anyone saw the corner.</p>
-        <div class="flag-chip sc crash-badge">P1 INCIDENT</div>
         <div class="crash-stage">
+          <div class="skids"></div>
+          <div class="barrier" aria-hidden="true"><b></b><b></b><b></b></div>
           <div class="car-mount crash-car" data-car="crash"></div>
+          <div class="loose-wheel" aria-hidden="true"></div>
+          <div class="debris" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="shock"></div>
           <div class="boom"></div>
+          <div class="fire"></div>
+          <div class="smoke smoke-a"></div>
+          <div class="smoke smoke-b"></div>
+          <div class="red-flag-banner">RED FLAG</div>
+          <div class="crash-stamp">P1 INCIDENT</div>
         </div>
         <div class="stat-row">
           <article><b>WAR ROOM</b><span>Rollback. Blame. Lost weekend.</span></article>

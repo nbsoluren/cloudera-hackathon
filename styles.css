@@ -476,43 +476,340 @@ h2 .red { color: var(--red); }
 }
 
 /* crash */
+.crash-flash {
+  position: fixed;
+  inset: 0;
+  z-index: 24;
+  pointer-events: none;
+  background: radial-gradient(circle at 62% 48%, #fff 0 8%, rgba(255,40,20,.85) 18%, transparent 55%);
+  opacity: 0;
+  mix-blend-mode: screen;
+}
+body.crashing .crash-flash { animation: crashFlash .45s ease-out; }
+@keyframes crashFlash {
+  0% { opacity: 1; }
+  35% { opacity: .9; }
+  100% { opacity: 0; }
+}
+.crash-vignette {
+  position: fixed;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 50% 42%, transparent 28%, rgba(90,0,0,.62) 100%);
+  opacity: 0;
+  transition: opacity .3s ease;
+}
+body.crash-dead .crash-vignette { opacity: 1; }
+
+body.crash-scene .road-surface,
+body.crash-scene .lane,
+body.crash-scene .rumble { animation-duration: .14s !important; }
+body.crash-dead .road-surface,
+body.crash-dead .lane,
+body.crash-dead .rumble { animation-play-state: paused; }
+body.crash-dead .hud-stack strong {
+  color: var(--red);
+  animation: blink .28s infinite;
+}
+body.crash-dead .telemetry b { color: var(--red); }
+body.crashing #deck,
+body.crashing .hud,
+body.crashing .world {
+  animation: crashShake .5s linear;
+}
+@keyframes crashShake {
+  0%, 100% { transform: translate(0, 0); }
+  8% { transform: translate(-18px, 10px) rotate(-0.6deg); }
+  16% { transform: translate(22px, -12px) rotate(0.7deg); }
+  24% { transform: translate(-14px, -8px) rotate(-0.4deg); }
+  32% { transform: translate(16px, 9px) rotate(0.5deg); }
+  42% { transform: translate(-10px, 6px); }
+  54% { transform: translate(8px, -5px); }
+  68% { transform: translate(-5px, 3px); }
+  82% { transform: translate(3px, -2px); }
+}
+
+.crash-slide h2 {
+  font-size: clamp(36px, 5.6vw, 72px);
+}
 .crash-stage {
   position: relative;
-  height: 200px;
-  margin: 12px 0 20px;
+  height: 230px;
+  margin: 10px 0 16px;
   overflow: visible;
 }
+.skids {
+  position: absolute;
+  left: 8%;
+  right: 28%;
+  bottom: 42px;
+  height: 10px;
+  background: repeating-linear-gradient(90deg, transparent 0 18px, rgba(20,20,20,.85) 18px 28px);
+  opacity: 0;
+  transform: scaleX(0);
+  transform-origin: left;
+}
+.crash-stage.play .skids { animation: skidDraw .45s .28s ease-out forwards; }
+@keyframes skidDraw {
+  to { opacity: .7; transform: scaleX(1); }
+}
+
+.barrier {
+  position: absolute;
+  right: 2%;
+  top: 28px;
+  bottom: 28px;
+  width: 72px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.barrier b {
+  flex: 1;
+  background: repeating-linear-gradient(-45deg, #e10600 0 10px, #f4f4f1 10px 20px);
+  box-shadow: inset 0 0 0 3px #111, 0 8px 0 #000;
+  transform-origin: left center;
+}
+.crash-stage.play .barrier { animation: barrierHit .55s .68s cubic-bezier(.15,.9,.4,1) both; }
+@keyframes barrierHit {
+  0% { transform: none; }
+  25% { transform: translateX(18px) rotate(4deg); }
+  55% { transform: translateX(10px) rotate(2deg); }
+  100% { transform: translateX(6px) rotate(1deg); }
+}
+
 .crash-car {
   position: absolute;
-  width: 520px;
-  left: -40%;
-  top: 36px;
-  z-index: 1;
+  width: min(540px, 58%);
+  left: -50%;
+  top: 28px;
+  z-index: 3;
+  will-change: transform, filter;
 }
-.slide.active .crash-car {
-  animation: smash 1.15s cubic-bezier(.15,.7,.2,1) forwards;
+.crash-stage.play .crash-car {
+  animation: smash 1.35s cubic-bezier(.12,.7,.2,1) forwards;
 }
 @keyframes smash {
-  0% { left: -40%; transform: none; }
-  70% { left: 22%; transform: none; }
-  82% { left: 28%; transform: rotate(8deg) translateX(10px); }
-  100% { left: 24%; transform: rotate(-4deg); }
+  0% {
+    left: -55%;
+    transform: translateY(0) rotate(-1deg) skewX(-14deg);
+    filter: blur(5px) brightness(1.2);
+  }
+  46% {
+    left: 34%;
+    transform: translateY(0) rotate(0deg) skewX(-8deg);
+    filter: blur(1px);
+  }
+  52% {
+    left: 44%;
+    transform: translateY(10px) rotate(14deg) skewX(0) scaleX(.82) scaleY(1.12);
+    filter: none;
+  }
+  64% {
+    left: 38%;
+    transform: translateY(8px) rotate(-26deg) scale(1);
+  }
+  80% {
+    left: 36%;
+    transform: translateY(20px) rotate(-48deg);
+  }
+  100% {
+    left: 32%;
+    transform: translateY(28px) rotate(-40deg);
+    filter: contrast(1.2) saturate(.65) brightness(.9);
+  }
 }
-.boom {
+body.crash-dead .crash-car .wheel { animation: none; }
+body.crash-dead .crash-car .wheel.front { opacity: 0; }
+
+.loose-wheel {
   position: absolute;
-  right: 12%; top: 20%;
-  width: 120px; height: 120px;
+  left: 48%;
+  top: 48%;
+  width: 54px;
+  height: 54px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(255,42,42,.8), transparent 70%);
+  background:
+    radial-gradient(circle at 50% 50%, #888 0 8px, #2a2a2e 9px 18px, #111 19px 27px);
+  box-shadow: inset 0 0 0 3px #ffcc00, 0 8px 10px rgba(0,0,0,.5);
   opacity: 0;
+  z-index: 5;
+}
+.crash-stage.play .loose-wheel {
+  animation: flyWheel 1.05s .7s cubic-bezier(.12,.72,.22,1) forwards;
+}
+@keyframes flyWheel {
+  0% { opacity: 1; transform: translate(0,0) rotate(0); }
+  100% { opacity: 1; transform: translate(260px, -170px) rotate(780deg); }
+}
+
+.debris i {
+  position: absolute;
+  left: 52%;
+  top: 46%;
+  height: 7px;
+  background: #e10600;
+  z-index: 5;
+  opacity: 0;
+  box-shadow: 0 0 8px #e10600;
+}
+.debris i:nth-child(odd) { background: #c8c8c8; box-shadow: none; }
+.crash-stage.play .debris i:nth-child(1) { width: 28px; animation: debris 0.75s .7s forwards; --dx: 160px; --dy: -90px; --rot: 240deg; }
+.crash-stage.play .debris i:nth-child(2) { width: 16px; animation: debris 0.7s .72s forwards; --dx: 90px; --dy: -140px; --rot: -180deg; }
+.crash-stage.play .debris i:nth-child(3) { width: 22px; animation: debris 0.8s .71s forwards; --dx: 210px; --dy: -40px; --rot: 110deg; }
+.crash-stage.play .debris i:nth-child(4) { width: 12px; animation: debris 0.65s .74s forwards; --dx: 40px; --dy: -120px; --rot: 400deg; }
+.crash-stage.play .debris i:nth-child(5) { width: 30px; animation: debris 0.85s .7s forwards; --dx: 140px; --dy: 40px; --rot: -90deg; }
+.crash-stage.play .debris i:nth-child(6) { width: 18px; animation: debris 0.72s .73s forwards; --dx: 70px; --dy: -60px; --rot: 160deg; }
+.crash-stage.play .debris i:nth-child(7) { width: 24px; background: #ffcc00; animation: debris 0.78s .71s forwards; --dx: 190px; --dy: -110px; --rot: 300deg; }
+.crash-stage.play .debris i:nth-child(8) { width: 14px; animation: debris 0.68s .75s forwards; --dx: 250px; --dy: 10px; --rot: -220deg; }
+@keyframes debris {
+  0% { opacity: 1; transform: translate(0,0) rotate(0); }
+  100% { opacity: .9; transform: translate(var(--dx), var(--dy)) rotate(var(--rot)); }
+}
+
+.shock {
+  position: absolute;
+  left: 58%;
+  top: 28%;
+  width: 40px;
+  height: 40px;
+  border: 4px solid #fff;
+  border-radius: 50%;
+  opacity: 0;
+  z-index: 4;
   pointer-events: none;
 }
-.slide.active .boom { animation: boom .6s .75s ease-out forwards; }
-@keyframes boom {
-  0% { opacity: 0; transform: scale(.4); }
-  40% { opacity: 1; transform: scale(1.4); }
-  100% { opacity: 0; transform: scale(2); }
+.crash-stage.play .shock { animation: shockwave .55s .68s ease-out forwards; }
+@keyframes shockwave {
+  0% { opacity: .9; transform: scale(.4); }
+  100% { opacity: 0; transform: scale(6); }
 }
+
+.boom {
+  position: absolute;
+  left: 52%;
+  top: 18%;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0 8%, #ffcc00 14%, #ff2a2a 32%, transparent 68%);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 4;
+  mix-blend-mode: screen;
+}
+.crash-stage.play .boom { animation: boom .7s .66s ease-out forwards; }
+@keyframes boom {
+  0% { opacity: 0; transform: scale(.2); }
+  22% { opacity: 1; transform: scale(1.15); }
+  100% { opacity: 0; transform: scale(2.4); }
+}
+
+.fire {
+  position: absolute;
+  left: 58%;
+  bottom: 36px;
+  width: 90px;
+  height: 110px;
+  background: radial-gradient(ellipse at 50% 90%, #fff 0 8%, #ffcc00 18%, #e10600 42%, transparent 70%);
+  filter: blur(7px);
+  opacity: 0;
+  transform-origin: 50% 100%;
+  z-index: 4;
+  pointer-events: none;
+}
+.crash-stage.play .fire {
+  animation: fireUp .35s .74s ease-out forwards, flicker .14s 1.05s infinite;
+}
+@keyframes fireUp {
+  from { opacity: 0; transform: scaleY(.3); }
+  to { opacity: .95; transform: scaleY(1); }
+}
+@keyframes flicker {
+  0%, 100% { transform: scaleY(1) scaleX(1); opacity: .9; }
+  50% { transform: scaleY(1.18) scaleX(.86); opacity: 1; }
+}
+
+.smoke {
+  position: absolute;
+  left: 56%;
+  bottom: 40px;
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(180,180,180,.55), transparent 70%);
+  filter: blur(10px);
+  opacity: 0;
+  z-index: 2;
+}
+.smoke-b { left: 62%; width: 100px; height: 100px; }
+.crash-stage.play .smoke-a { animation: smokeRise 1.8s .8s ease-out forwards; }
+.crash-stage.play .smoke-b { animation: smokeRise 2.2s .95s ease-out forwards; }
+@keyframes smokeRise {
+  0% { opacity: 0; transform: translateY(10px) scale(.6); }
+  30% { opacity: .7; }
+  100% { opacity: .35; transform: translateY(-90px) scale(1.6); }
+}
+
+.red-flag-banner {
+  position: absolute;
+  left: 50%;
+  top: 36%;
+  z-index: 7;
+  transform: translateX(-50%) scale(1.8) rotate(-4deg);
+  font-family: var(--disp);
+  font-size: clamp(36px, 5vw, 62px);
+  letter-spacing: .18em;
+  background: var(--red);
+  color: #fff;
+  padding: 2px 22px 0;
+  opacity: 0;
+  box-shadow: 0 10px 30px rgba(0,0,0,.45);
+}
+.crash-stage.play .red-flag-banner {
+  animation: stampFlag .38s .82s cubic-bezier(.15,1.5,.3,1) forwards;
+}
+.crash-stamp {
+  position: absolute;
+  right: 22%;
+  bottom: 8px;
+  z-index: 7;
+  font-family: var(--disp);
+  font-size: clamp(22px, 3vw, 34px);
+  letter-spacing: .1em;
+  color: var(--red);
+  border: 4px solid var(--red);
+  padding: 4px 12px;
+  background: rgba(8,8,10,.8);
+  transform: rotate(-12deg) scale(1.6);
+  opacity: 0;
+}
+.crash-stage.play .crash-stamp {
+  animation: stampTilt .32s 1s cubic-bezier(.15,1.5,.3,1) forwards;
+}
+@keyframes stampFlag {
+  from { opacity: 0; transform: translateX(-50%) scale(2.1) rotate(-10deg); }
+  to { opacity: 1; transform: translateX(-50%) scale(1) rotate(-4deg); }
+}
+@keyframes stampTilt {
+  from { opacity: 0; transform: rotate(-20deg) scale(1.7); }
+  to { opacity: 1; transform: rotate(-12deg) scale(1); }
+}
+
+.crash-slide .stat-row article {
+  opacity: 0;
+  transform: translateY(22px) scale(.96);
+}
+.crash-stage.play ~ .stat-row article { animation: crashCardIn .42s cubic-bezier(.2,1.2,.3,1) forwards; }
+.crash-stage.play ~ .stat-row article:nth-child(1) { animation-delay: 1.18s; }
+.crash-stage.play ~ .stat-row article:nth-child(2) { animation-delay: 1.3s; }
+.crash-stage.play ~ .stat-row article:nth-child(3) { animation-delay: 1.42s; }
+@keyframes crashCardIn {
+  to { opacity: 1; transform: none; }
+}
+
 .crash-wall {
   position: absolute;
   right: 4%;
@@ -527,11 +824,6 @@ h2 .red { color: var(--red); }
   background: rgba(8,8,10,.85);
   transform: rotate(-8deg);
   opacity: 0;
-}
-.slide.active .crash-wall { animation: stamp .35s .95s cubic-bezier(.2,1.4,.3,1) forwards; }
-@keyframes stamp {
-  from { opacity: 0; transform: rotate(-8deg) scale(1.4); }
-  to { opacity: 1; transform: rotate(-8deg) scale(1); }
 }
 
 .stat-row {
@@ -988,7 +1280,9 @@ kbd {
   h2 { font-size: clamp(32px, 5.2vw, 64px); }
   .mega { font-size: clamp(40px, 6.5vw, 86px); }
   .hero-car-wrap { width: min(560px, 72%); }
-  .crash-stage { height: 130px; }
+  .crash-stage { height: 180px; }
+  .crash-car { top: 8px; }
+  .red-flag-banner { font-size: 32px; }
   .caps article, .arch-col, .lane-card { padding: 14px 16px; }
   .tower li { padding: 5px 0; }
   .story-card h3 { font-size: 26px; }
