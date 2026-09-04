@@ -95,14 +95,11 @@
 
   const voice = {
     ready: false,
-    oscA: null,
-    oscB: null,
-    oscC: null,
-    filt: null,
+    hooked: false,
+    engine: null,
+    flyby: null,
+    filter: null,
     master: null,
-    noise: null,
-    noiseFilt: null,
-    noiseGain: null,
     blipUntil: 0,
   };
 
@@ -112,104 +109,84 @@
     return state.audio;
   }
 
-  function startVoice() {
-    if (state.muted || voice.ready) return;
-    const ac = audioCtx();
-    const oscA = ac.createOscillator();
-    const oscB = ac.createOscillator();
-    const oscC = ac.createOscillator();
-    oscA.type = "sawtooth";
-    oscB.type = "sawtooth";
-    oscC.type = "triangle";
-    const filt = ac.createBiquadFilter();
-    filt.type = "lowpass";
-    filt.Q.value = 1.6;
-    filt.frequency.value = 320;
+  function hookEngine(ac) {
+    if (voice.hooked || !voice.engine) return;
+    const src = ac.createMediaElementSource(voice.engine);
+    const filter = ac.createBiquadFilter();
+    filter.type = "lowpass";
+    filter.frequency.value = 9000;
+    const comp = ac.createDynamicsCompressor();
+    comp.threshold.value = -18;
+    comp.ratio.value = 3;
     const master = ac.createGain();
-    master.gain.value = 0;
-    oscA.connect(filt);
-    oscB.connect(filt);
-    oscC.connect(filt);
-    filt.connect(master);
-    master.connect(ac.destination);
-
-    const len = Math.floor(ac.sampleRate * 1.2);
-    const buf = ac.createBuffer(1, len, ac.sampleRate);
-    const data = buf.getChannelData(0);
-    let last = 0;
-    for (let i = 0; i < len; i++) {
-      last = last * 0.98 + (Math.random() * 2 - 1) * 0.02;
-      data[i] = Math.max(-1, Math.min(1, last * 6));
-    }
-    const noise = ac.createBufferSource();
-    noise.buffer = buf;
-    noise.loop = true;
-    const noiseFilt = ac.createBiquadFilter();
-    noiseFilt.type = "bandpass";
-    noiseFilt.frequency.value = 190;
-    noiseFilt.Q.value = 0.9;
-    const noiseGain = ac.createGain();
-    noiseGain.gain.value = 0;
-    noise.connect(noiseFilt).connect(noiseGain).connect(ac.destination);
-
-    oscA.start();
-    oscB.start();
-    oscC.start();
-    noise.start();
-
-    voice.ready = true;
-    voice.oscA = oscA;
-    voice.oscB = oscB;
-    voice.oscC = oscC;
-    voice.filt = filt;
+    master.gain.value = 0.62;
+    src.connect(filter).connect(comp).connect(master).connect(ac.destination);
+    voice.filter = filter;
     voice.master = master;
-    voice.noise = noise;
-    voice.noiseFilt = noiseFilt;
-    voice.noiseGain = noiseGain;
+    voice.hooked = true;
+  }
+
+  function startVoice() {
+    if (state.muted) return;
+    const ac = audioCtx();
+    if (!voice.engine) {
+      voice.engine = new Audio("assets/audio/engine.mp3");
+      voice.engine.loop = true;
+      voice.engine.preload = "auto";
+      voice.flyby = new Audio("assets/audio/flyby.mp3");
+      voice.flyby.preload = "auto";
+      hookEngine(ac);
+    }
+    if (voice.engine.paused) {
+      voice.engine.volume = 0.7;
+      const play = voice.engine.play();
+      if (play && play.catch) play.catch(() => {});
+    }
+    voice.ready = true;
   }
 
   function stopVoice() {
-    if (!voice.ready) return;
-    const ac = state.audio;
-    const t = ac.currentTime;
-    voice.master.gain.cancelScheduledValues(t);
-    voice.master.gain.setTargetAtTime(0, t, 0.04);
-    voice.noiseGain.gain.setTargetAtTime(0, t, 0.04);
-    const oscA = voice.oscA;
-    const oscB = voice.oscB;
-    const oscC = voice.oscC;
-    const noise = voice.noise;
     voice.ready = false;
-    setTimeout(() => {
-      try { oscA.stop(); oscB.stop(); oscC.stop(); noise.stop(); } catch (_) {}
-    }, 180);
+    if (voice.engine) {
+      voice.engine.pause();
+    }
+    if (voice.master && state.audio) {
+      voice.master.gain.setTargetAtTime(0, state.audio.currentTime, 0.04);
+    }
   }
 
   function driveVoice() {
-    if (!voice.ready || state.muted) return;
+    if (!voice.engine || state.muted) return;
     const ac = state.audio;
-    const t = ac.currentTime;
     if (crashPhase === "dead") {
-      voice.master.gain.setTargetAtTime(0, t, 0.02);
-      voice.noiseGain.gain.setTargetAtTime(0, t, 0.02);
+      if (voice.master && ac) voice.master.gain.setTargetAtTime(0, ac.currentTime, 0.04);
+      voice.engine.volume = 0;
       return;
     }
+    if (!voice.ready) return;
     const blip = performance.now() < voice.blipUntil;
-    const rpmN = blip ? 0.82 : Math.min(1, Math.max(0.08, (rpm - 700) / 8300));
-    const f = 42 + rpmN * 78;
-    voice.oscA.frequency.setTargetAtTime(f, t, 0.05);
-    voice.oscB.frequency.setTargetAtTime(f * 1.007, t, 0.05);
-    voice.oscC.frequency.setTargetAtTime(f * 2.0, t, 0.05);
-    voice.filt.frequency.setTargetAtTime(240 + rpmN * 980, t, 0.07);
-    voice.master.gain.setTargetAtTime(0.022 + rpmN * 0.038, t, 0.07);
-    voice.noiseFilt.frequency.setTargetAtTime(150 + rpmN * 240, t, 0.08);
-    voice.noiseGain.gain.setTargetAtTime(0.01 + rpmN * 0.028, t, 0.08);
+    const rpmN = blip ? 0.92 : Math.min(1, Math.max(0.15, (rpm - 700) / 8300));
+    voice.engine.playbackRate = 0.9 + rpmN * 0.45;
+    if (voice.master && ac) {
+      voice.master.gain.setTargetAtTime(0.45 + rpmN * 0.28, ac.currentTime, 0.08);
+    }
+    if (voice.filter && ac) {
+      voice.filter.frequency.setTargetAtTime(4500 + rpmN * 7000, ac.currentTime, 0.1);
+    }
   }
 
   function revBlip() {
     if (state.muted) return;
     startVoice();
-    voice.blipUntil = performance.now() + 260;
+    voice.blipUntil = performance.now() + 340;
+    if (voice.flyby) {
+      try {
+        voice.flyby.currentTime = 0;
+        voice.flyby.volume = 0.42;
+        const p = voice.flyby.play();
+        if (p && p.catch) p.catch(() => {});
+      } catch (_) {}
+    }
   }
 
   function go(n) {
@@ -243,6 +220,7 @@
     document.body.classList.remove("crash-scene", "crashing", "crash-dead");
     crashPhase = null;
     if (i === 1) playCrash();
+    else if (!state.muted) startVoice();
     if (i === 5) startEngine();
     else stopEngine();
     if (i === 6) playPit();
@@ -254,6 +232,7 @@
     crashTimers.forEach(clearTimeout);
     crashTimers = [];
     crashPhase = "approach";
+    if (!state.muted) startVoice();
     const stage = $(".crash-stage");
     if (!stage) return;
     stage.classList.remove("play");
@@ -266,6 +245,9 @@
       $("#hud-flag").textContent = "RED FLAG";
       crashSound();
       crashBurst();
+      if (voice.engine) {
+        setTimeout(() => { try { voice.engine.pause(); } catch (_) {} }, 180);
+      }
     }, 690));
     crashTimers.push(setTimeout(() => {
       document.body.classList.remove("crashing");
