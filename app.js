@@ -67,6 +67,7 @@
   let rpm = 4200;
   let gear = 3;
   let crashPhase = null;
+  let crashTimers = [];
   function tickTelemetry() {
     if (crashPhase === "dead") {
       speed += (0 - speed) * 0.22;
@@ -216,10 +217,20 @@
   function next() { go(state.i + 1); }
   function prev() { go(state.i - 1); }
 
-  function onEnter(i) {
-    document.body.classList.remove("crash-scene", "crashing", "crash-dead");
+  function stopCrash() {
+    crashTimers.forEach(clearTimeout);
+    crashTimers = [];
     crashPhase = null;
-    if (i === 1) playCrash();
+    document.body.classList.remove("crash-scene", "crashing", "crash-dead");
+    const stage = $(".crash-stage");
+    if (stage) stage.classList.remove("play");
+  }
+
+  function onEnter(i) {
+    stopCrash();
+    const slide = slides[i];
+    if (!slide) return;
+    if (slide.classList.contains("crash-slide")) playCrash();
     else if (!state.muted) startVoice();
     if (i === 5) startEngine();
     else stopEngine();
@@ -227,7 +238,6 @@
     if (i === 8) playCounts();
   }
 
-  let crashTimers = [];
   function playCrash() {
     crashTimers.forEach(clearTimeout);
     crashTimers = [];
@@ -236,9 +246,12 @@
     const stage = $(".crash-stage");
     if (!stage) return;
     stage.classList.remove("play");
-    void stage.offsetWidth;
-    stage.classList.add("play");
-    document.body.classList.add("crash-scene");
+    document.body.classList.remove("crash-scene", "crashing", "crash-dead");
+    crashTimers.push(setTimeout(() => {
+      void stage.offsetWidth;
+      stage.classList.add("play");
+      document.body.classList.add("crash-scene");
+    }, 40));
     crashTimers.push(setTimeout(() => {
       crashPhase = "dead";
       document.body.classList.add("crashing", "crash-dead");
@@ -246,46 +259,66 @@
       crashSound();
       crashBurst();
       if (voice.engine) {
-        setTimeout(() => { try { voice.engine.pause(); } catch (_) {} }, 180);
+        crashTimers.push(setTimeout(() => {
+          try { voice.engine.pause(); } catch (_) {}
+        }, 160));
       }
-    }, 690));
+    }, 900));
     crashTimers.push(setTimeout(() => {
       document.body.classList.remove("crashing");
-    }, 1220));
+    }, 1480));
   }
 
   function crashSound() {
     if (state.muted) return;
     const ac = audioCtx();
     const t = ac.currentTime;
-    driveVoice();
+
     const thump = ac.createOscillator();
     const thumpG = ac.createGain();
     thump.type = "sine";
-    thump.frequency.setValueAtTime(72, t);
-    thump.frequency.exponentialRampToValueAtTime(22, t + 0.55);
-    thumpG.gain.setValueAtTime(0.2, t);
-    thumpG.gain.exponentialRampToValueAtTime(0.001, t + 0.55);
+    thump.frequency.setValueAtTime(90, t);
+    thump.frequency.exponentialRampToValueAtTime(28, t + 0.42);
+    thumpG.gain.setValueAtTime(0.28, t);
+    thumpG.gain.exponentialRampToValueAtTime(0.001, t + 0.42);
     thump.connect(thumpG).connect(ac.destination);
     thump.start(t);
-    thump.stop(t + 0.58);
+    thump.stop(t + 0.45);
 
-    const len = Math.floor(ac.sampleRate * 0.4);
-    const buf = ac.createBuffer(1, len, ac.sampleRate);
-    const data = buf.getChannelData(0);
-    for (let i = 0; i < len; i++) {
-      const env = 1 - i / len;
-      data[i] = (Math.random() * 2 - 1) * env * env;
+    const crackLen = Math.floor(ac.sampleRate * 0.18);
+    const crackBuf = ac.createBuffer(1, crackLen, ac.sampleRate);
+    const crackData = crackBuf.getChannelData(0);
+    for (let i = 0; i < crackLen; i++) {
+      const env = Math.pow(1 - i / crackLen, 2.4);
+      crackData[i] = (Math.random() * 2 - 1) * env;
     }
-    const grit = ac.createBufferSource();
-    grit.buffer = buf;
+    const crack = ac.createBufferSource();
+    crack.buffer = crackBuf;
     const hp = ac.createBiquadFilter();
     hp.type = "highpass";
-    hp.frequency.value = 900;
+    hp.frequency.value = 1800;
+    const crackG = ac.createGain();
+    crackG.gain.setValueAtTime(0.22, t);
+    crackG.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+    crack.connect(hp).connect(crackG).connect(ac.destination);
+    crack.start(t);
+
+    const gritLen = Math.floor(ac.sampleRate * 0.55);
+    const gritBuf = ac.createBuffer(1, gritLen, ac.sampleRate);
+    const gritData = gritBuf.getChannelData(0);
+    for (let i = 0; i < gritLen; i++) {
+      const env = 1 - i / gritLen;
+      gritData[i] = (Math.random() * 2 - 1) * env * env;
+    }
+    const grit = ac.createBufferSource();
+    grit.buffer = gritBuf;
+    const bp = ac.createBiquadFilter();
+    bp.type = "bandpass";
+    bp.frequency.value = 1400;
     const gritG = ac.createGain();
-    gritG.gain.setValueAtTime(0.09, t);
-    gritG.gain.exponentialRampToValueAtTime(0.001, t + 0.38);
-    grit.connect(hp).connect(gritG).connect(ac.destination);
+    gritG.gain.setValueAtTime(0.08, t);
+    gritG.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
+    grit.connect(bp).connect(gritG).connect(ac.destination);
     grit.start(t);
   }
 
@@ -444,19 +477,34 @@
     }
   }
   function crashBurst() {
-    const cx = innerWidth * 0.62;
-    const cy = innerHeight * 0.48;
-    for (let i = 0; i < 110; i++) {
-      const a = (-Math.PI * 0.15) + Math.random() * Math.PI * 1.3;
-      const sp = 5 + Math.random() * 18;
+    const stage = $(".crash-stage");
+    const r = stage ? stage.getBoundingClientRect() : { left: innerWidth * 0.5, top: innerHeight * 0.4, width: innerWidth * 0.4, height: 200 };
+    const cx = r.left + r.width * 0.82;
+    const cy = r.top + r.height * 0.58;
+    for (let i = 0; i < 90; i++) {
+      const a = -Math.PI * 0.85 + Math.random() * Math.PI * 1.1;
+      const sp = 4 + Math.random() * 16;
+      const gold = Math.random() > 0.35;
       parts.push({
-        x: cx,
-        y: cy,
+        x: cx + (Math.random() - 0.5) * 24,
+        y: cy + (Math.random() - 0.5) * 18,
         vx: Math.cos(a) * sp,
-        vy: Math.sin(a) * sp - 4,
+        vy: Math.sin(a) * sp - 6,
         life: 1,
-        w: 3 + Math.random() * 16,
-        c: Math.random() > 0.35 ? "#ffcc00" : "#ff2a2a",
+        w: gold ? 2 + Math.random() * 10 : 3 + Math.random() * 8,
+        c: gold ? (Math.random() > 0.4 ? "#ffd27a" : "#fff4c8") : "#2b2d32",
+        kind: "spark",
+      });
+    }
+    for (let i = 0; i < 28; i++) {
+      parts.push({
+        x: cx - 80 - Math.random() * 180,
+        y: cy + 18,
+        vx: 6 + Math.random() * 14,
+        vy: -1 - Math.random() * 3,
+        life: 1,
+        w: 6 + Math.random() * 16,
+        c: Math.random() > 0.5 ? "#ffb347" : "#ffe08a",
         kind: "spark",
       });
     }
