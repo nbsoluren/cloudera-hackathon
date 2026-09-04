@@ -219,12 +219,14 @@
   function onEnter(i) {
     document.body.classList.remove("crash-scene", "crashing", "crash-dead");
     crashPhase = null;
-    if (i === 1) playCrash();
+    const slide = slides[i];
+    if (!slide) return;
+    if (slide.classList.contains("crash-slide")) playCrash();
     else if (!state.muted) startVoice();
-    if (i === 5) startEngine();
+    if (slide.querySelector("#engine")) startEngine();
     else stopEngine();
-    if (i === 6) playPit();
-    if (i === 8) playCounts();
+    if (slide.querySelector("#tower")) playPit();
+    if (slide.querySelector(".count")) playCounts();
   }
 
   let crashTimers = [];
@@ -514,7 +516,7 @@
     if (e.key === "m" || e.key === "M") toggleSound();
     if (e.key === "r" || e.key === "R") restart();
     if (e.key >= "1" && e.key <= "9") go(+e.key - 1);
-    if (e.key === "0") go(9);
+    if (e.key === "0") go(slides.length - 1);
   }
 
   initCircuit();
